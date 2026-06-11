@@ -1,6 +1,6 @@
 import "server-only";
 
-import { serverFetch } from "./server-client";
+import { ApiResponse, serverFetch } from "./server-client";
 import {
   CreateMonitorRequest,
   Monitor,
@@ -21,8 +21,6 @@ export async function createMonitor(data: CreateMonitorRequest) {
 
 /**
  * Get all monitors for the authenticated user
- * NOTE: This endpoint needs to be implemented in the backend
- * Expected: GET /api/v1/monitors -> Monitor[]
  */
 export async function getMonitors() {
   return serverFetch<Monitor[]>("/api/v1/monitors", {
@@ -32,31 +30,17 @@ export async function getMonitors() {
 
 /**
  * Get a single monitor by ID
- * Falls back to fetching all monitors and filtering if single endpoint doesn't exist
+ * The backend does not provide a single-monitor endpoint, so use the list.
  */
-export async function getMonitorById(monitorId: string) {
-  // Try direct endpoint first
-  const result = await serverFetch<Monitor>(`/api/v1/monitors/${monitorId}`, {
-    method: "GET",
-  });
-
-  // If successful, return the result
-  if (!result.error) {
-    return result;
-  }
-
-  // For 404/405/401/403, try fetching from the monitors list as fallback
-  // (The single monitor endpoint may not exist in the backend)
+export async function getMonitorById(monitorId: string): Promise<ApiResponse<Monitor>> {
   const listResult = await serverFetch<Monitor[]>("/api/v1/monitors", {
     method: "GET",
   });
 
   if (listResult.error) {
-    // If list also fails, return the original error
-    return result;
+    return { error: listResult.error };
   }
 
-  // Find the monitor in the list
   const monitor = listResult.data?.find(m => m.id === monitorId);
 
   if (monitor) {
@@ -109,4 +93,3 @@ export async function toggleMonitorStatus(monitorId: string, active: boolean) {
     body: { active },
   });
 }
-

@@ -29,3 +29,11 @@ export async function signinUser(data: SigninRequest) {
   });
 }
 
+/**
+ * Validate the current cookie-based session
+ */
+export async function validateSession() {
+  return serverFetch<SigninResponse>("/api/v1/auth/validate", {
+    method: "GET",
+  });
+}

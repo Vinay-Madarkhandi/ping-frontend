@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -30,8 +30,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { signinSchema, SigninInput } from "@/lib/validations";
 
 function LoginForm() {
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+  const callbackUrl = searchParams.get("callbackUrl") || "/monitors";
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<SigninInput>({
@@ -62,8 +63,8 @@ function LoginForm() {
         toast.success("Welcome back!", {
           description: "You have been signed in successfully.",
         });
-        // Use window.location for a full page reload to ensure cookies are recognized
-        window.location.href = callbackUrl;
+        router.replace(callbackUrl);
+        router.refresh();
       } else {
         toast.error("Sign in failed", {
           description: result.message || "Invalid email or password.",
@@ -189,4 +190,3 @@ export default function LoginPage() {
     </Suspense>
   );
 }
-

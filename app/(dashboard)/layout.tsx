@@ -1,12 +1,20 @@
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/shared/app-sidebar";
 import { Separator } from "@/components/ui/separator";
+import { validateSession } from "@/lib/api/auth";
+import { redirect } from "next/navigation";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { error } = await validateSession();
+
+  if (error?.status === 401 || error?.status === 403) {
+    redirect("/signin");
+  }
+
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -21,4 +29,3 @@ export default function DashboardLayout({
     </SidebarProvider>
   );
 }
-

@@ -25,8 +25,6 @@ interface AnalyticsChartsProps {
   monitors: Monitor[];
 }
 
-const COLORS = ["#22c55e", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4"];
-
 export function AnalyticsCharts({ monitors }: AnalyticsChartsProps) {
   // Prepare data for status pie chart
   const statusData = [
@@ -213,4 +211,3 @@ export function AnalyticsCharts({ monitors }: AnalyticsChartsProps) {
     </div>
   );
 }
-

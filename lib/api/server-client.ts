@@ -9,7 +9,7 @@ interface FetchOptions extends Omit<RequestInit, "body"> {
   body?: unknown;
 }
 
-interface ApiResponse<T> {
+export interface ApiResponse<T> {
   data?: T;
   error?: ApiError;
   setCookies?: string[];
@@ -134,4 +134,3 @@ export async function getAuthCookie(): Promise<string | undefined> {
   const token = cookieStore.get("JwtToken") || cookieStore.get("token") || cookieStore.get("jwt") || cookieStore.get("session");
   return token?.value;
 }
-

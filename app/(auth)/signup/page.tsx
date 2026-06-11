@@ -52,7 +52,7 @@ export default function SignupPage() {
         toast.success("Account created successfully!", {
           description: "Please sign in with your credentials.",
         });
-        router.push("/login");
+        router.push("/signin");
       } else {
         toast.error("Signup failed", {
           description: result.error || "Please try again.",
@@ -149,7 +149,7 @@ export default function SignupPage() {
         <div className="mt-4 text-center text-sm text-muted-foreground">
           Already have an account?{" "}
           <Link
-            href="/login"
+            href="/signin"
             className="text-primary underline-offset-4 hover:underline"
           >
             Sign in
@@ -159,4 +159,3 @@ export default function SignupPage() {
     </Card>
   );
 }
-

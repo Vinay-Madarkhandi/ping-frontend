@@ -10,8 +10,8 @@ export default async function HomePage() {
     cookieStore.get("session");
 
   if (token) {
-    redirect("/dashboard");
+    redirect("/monitors");
   } else {
-    redirect("/login");
+    redirect("/signin");
   }
 }

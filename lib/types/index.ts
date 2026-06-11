@@ -25,7 +25,7 @@ export interface CreateMonitorRequest {
   url: string;
   intervalMilliseconds: number;
   timeoutMilliseconds: number;
-  monitorMethod: "GET" | "POST" | "HEAD";
+  monitorMethod: "GET" | "POST";
 }
 
 export interface Monitor {
@@ -33,7 +33,7 @@ export interface Monitor {
   name: string;
   url: string;
   active: boolean;
-  method: "GET" | "POST" | "HEAD";
+  method: "GET" | "POST";
   nextCheckAt: string;
   uptimePercentage: number;
   createdAt?: string; // Optional - only returned by create endpoint
@@ -79,4 +79,3 @@ export interface ActionResult<T = void> {
   data?: T;
   error?: string;
 }
-

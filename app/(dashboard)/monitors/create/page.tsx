@@ -184,7 +184,6 @@ export default function CreateMonitorPage() {
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="GET">GET</SelectItem>
-                          <SelectItem value="HEAD">HEAD</SelectItem>
                           <SelectItem value="POST">POST</SelectItem>
                         </SelectContent>
                       </Select>
@@ -288,4 +287,3 @@ export default function CreateMonitorPage() {
     </div>
   );
 }
-

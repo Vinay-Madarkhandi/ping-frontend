@@ -58,6 +58,27 @@ export function MonitorsTable({ monitors }: MonitorsTableProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
+  const formatNextCheck = (nextCheckAt?: string) => {
+    if (!nextCheckAt) return "N/A";
+
+    const nextCheckDate = new Date(nextCheckAt);
+    if (Number.isNaN(nextCheckDate.getTime())) return "N/A";
+
+    return formatDistanceToNow(nextCheckDate, { addSuffix: true });
+  };
+
+  const formatUptime = (uptime?: number) => {
+    if (typeof uptime !== "number") return "N/A";
+    return `${uptime.toFixed(1)}%`;
+  };
+
+  const getUptimeColor = (uptime?: number) => {
+    if (typeof uptime !== "number") return "text-muted-foreground";
+    if (uptime >= 99) return "text-green-500";
+    if (uptime >= 95) return "text-yellow-500";
+    return "text-red-500";
+  };
+
   const handleDelete = async () => {
     if (!deleteId) return;
 
@@ -123,8 +144,10 @@ export function MonitorsTable({ monitors }: MonitorsTableProps) {
                 <TableRow>
                   <TableHead>Status</TableHead>
                   <TableHead>Name</TableHead>
+                  <TableHead>Method</TableHead>
                   <TableHead>URL</TableHead>
-                  <TableHead>Created</TableHead>
+                  <TableHead>Next Check</TableHead>
+                  <TableHead>Uptime</TableHead>
                   <TableHead className="w-[70px]"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -152,19 +175,21 @@ export function MonitorsTable({ monitors }: MonitorsTableProps) {
                       </Link>
                     </TableCell>
                     <TableCell>
+                      <Badge variant="outline">{monitor.method || "GET"}</Badge>
+                    </TableCell>
+                    <TableCell>
                       <span className="text-muted-foreground truncate max-w-[300px] block">
                         {monitor.url}
                       </span>
                     </TableCell>
                     <TableCell>
                       <span className="text-muted-foreground text-sm">
-                        {monitor.createdAt
-                          ? formatDistanceToNow(new Date(monitor.createdAt), {
-                              addSuffix: true,
-                            })
-                          : monitor.nextCheckAt
-                          ? `Next: ${new Date(monitor.nextCheckAt).toLocaleString()}`
-                          : "N/A"}
+                        {formatNextCheck(monitor.nextCheckAt)}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <span className={`text-sm font-medium ${getUptimeColor(monitor.uptimePercentage)}`}>
+                        {formatUptime(monitor.uptimePercentage)}
                       </span>
                     </TableCell>
                     <TableCell>
@@ -305,10 +330,16 @@ export function MonitorsTable({ monitors }: MonitorsTableProps) {
                       {monitor.active ? "Active" : "Paused"}
                     </Badge>
                   </div>
-                  <span className="text-muted-foreground">
-                    {monitor.uptimePercentage?.toFixed(1)}% uptime
+                  <Badge variant="outline" className="text-xs">
+                    {monitor.method || "GET"}
+                  </Badge>
+                  <span className={getUptimeColor(monitor.uptimePercentage)}>
+                    {formatUptime(monitor.uptimePercentage)} uptime
                   </span>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  Next check {formatNextCheck(monitor.nextCheckAt)}
+                </p>
               </div>
             ))}
           </div>
@@ -339,4 +370,3 @@ export function MonitorsTable({ monitors }: MonitorsTableProps) {
     </>
   );
 }
-

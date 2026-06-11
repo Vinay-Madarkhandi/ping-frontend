@@ -34,13 +34,13 @@ export const createMonitorSchema = z.object({
     ),
   intervalMilliseconds: z
     .number()
-    .min(10000, "Interval must be at least 10 seconds")
+    .positive("Interval must be greater than 0")
     .max(86400000, "Interval must be at most 24 hours"),
   timeoutMilliseconds: z
     .number()
-    .min(1000, "Timeout must be at least 1 second")
+    .positive("Timeout must be greater than 0")
     .max(60000, "Timeout must be at most 60 seconds"),
-  monitorMethod: z.enum(["GET", "POST", "HEAD"], {
+  monitorMethod: z.enum(["GET", "POST"], {
     message: "Please select a valid HTTP method",
   }),
 });
@@ -49,4 +49,3 @@ export const createMonitorSchema = z.object({
 export type SignupInput = z.infer<typeof signupSchema>;
 export type SigninInput = z.infer<typeof signinSchema>;
 export type CreateMonitorInput = z.infer<typeof createMonitorSchema>;
-

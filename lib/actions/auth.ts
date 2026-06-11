@@ -142,6 +142,5 @@ export async function signoutAction(): Promise<void> {
   cookieStore.delete("jwt");
   cookieStore.delete("session");
 
-  redirect("/login");
+  redirect("/signin");
 }
-
