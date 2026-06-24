@@ -21,15 +21,6 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // Also check all cookies if none of the known names match
-  if (!isAuthenticated) {
-    const allCookies = request.cookies.getAll();
-    // Log cookies for debugging in development
-    if (process.env.NODE_ENV === "development" && allCookies.length > 0) {
-      console.log("Available cookies:", allCookies.map(c => c.name));
-    }
-  }
-
   // Check if current path is protected
   const isProtectedRoute = protectedRoutes.some(
     (route) => pathname === route || pathname.startsWith(`${route}/`)

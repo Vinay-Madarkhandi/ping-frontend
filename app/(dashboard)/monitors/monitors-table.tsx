@@ -10,11 +10,8 @@ import {
   Eye,
   Pause,
   Play,
-  CheckCircle2,
-  XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
-import { formatDistanceToNow } from "date-fns";
 
 import {
   Table,
@@ -45,8 +42,17 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import { Monitor } from "@/lib/types";
-import { deleteMonitorAction, toggleMonitorAction } from "@/lib/actions/monitors";
+import { Monitor, MonitorDisplayState } from "@/lib/types";
+import {
+  deleteMonitorAction,
+  pauseMonitorAction,
+  resumeMonitorAction,
+} from "@/lib/actions/monitors";
+import { formatBackendRelativeTime } from "@/lib/datetime";
+import {
+  getMonitorDisplayState,
+  MonitorStateBadge,
+} from "@/components/shared/monitor-state-badge";
 
 interface MonitorsTableProps {
   monitors: Monitor[];
@@ -57,14 +63,12 @@ export function MonitorsTable({ monitors }: MonitorsTableProps) {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [optimisticStates, setOptimisticStates] = useState<Record<string, MonitorDisplayState>>({});
 
   const formatNextCheck = (nextCheckAt?: string) => {
     if (!nextCheckAt) return "N/A";
 
-    const nextCheckDate = new Date(nextCheckAt);
-    if (Number.isNaN(nextCheckDate.getTime())) return "N/A";
-
-    return formatDistanceToNow(nextCheckDate, { addSuffix: true });
+    return formatBackendRelativeTime(nextCheckAt);
   };
 
   const formatUptime = (uptime?: number) => {
@@ -105,23 +109,47 @@ export function MonitorsTable({ monitors }: MonitorsTableProps) {
     }
   };
 
-  const handleToggle = async (monitor: Monitor) => {
+  const getEffectiveState = (monitor: Monitor) =>
+    optimisticStates[monitor.id] ?? getMonitorDisplayState(monitor);
+
+  const isPaused = (monitor: Monitor) => getEffectiveState(monitor) === "PAUSED" || !monitor.active;
+
+  const handlePauseResume = async (monitor: Monitor) => {
+    const paused = isPaused(monitor);
     setTogglingId(monitor.id);
+    setOptimisticStates((current) => ({
+      ...current,
+      [monitor.id]: paused ? "UNKNOWN" : "PAUSED",
+    }));
+
     try {
-      const result = await toggleMonitorAction(monitor.id, !monitor.active);
+      const result = paused
+        ? await resumeMonitorAction(monitor.id)
+        : await pauseMonitorAction(monitor.id);
+
       if (result.success) {
-        toast.success(monitor.active ? "Monitor paused" : "Monitor activated", {
-          description: monitor.active
-            ? "The monitor will stop checking."
-            : "The monitor will start checking.",
+        toast.success(paused ? "Monitor resumed" : "Monitor paused", {
+          description: paused
+            ? "Checks will start running again."
+            : "Checks are paused and excluded from uptime.",
         });
         router.refresh();
       } else {
+        setOptimisticStates((current) => {
+          const next = { ...current };
+          delete next[monitor.id];
+          return next;
+        });
         toast.error("Failed to update monitor", {
           description: result.error,
         });
       }
     } catch {
+      setOptimisticStates((current) => {
+        const next = { ...current };
+        delete next[monitor.id];
+        return next;
+      });
       toast.error("Something went wrong", {
         description: "Please try again later.",
       });
@@ -152,19 +180,14 @@ export function MonitorsTable({ monitors }: MonitorsTableProps) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {monitors.map((monitor) => (
+                {monitors.map((monitor) => {
+                  const displayState = getEffectiveState(monitor);
+                  const paused = isPaused(monitor);
+
+                  return (
                   <TableRow key={monitor.id}>
                     <TableCell>
-                      <div className="flex items-center gap-2">
-                        {monitor.active ? (
-                          <CheckCircle2 className="h-4 w-4 text-green-500" />
-                        ) : (
-                          <XCircle className="h-4 w-4 text-gray-500" />
-                        )}
-                        <Badge variant={monitor.active ? "default" : "secondary"}>
-                          {monitor.active ? "Active" : "Paused"}
-                        </Badge>
-                      </div>
+                      <MonitorStateBadge state={displayState} active={monitor.active || displayState === "PAUSED"} />
                     </TableCell>
                     <TableCell>
                       <Link
@@ -219,10 +242,10 @@ export function MonitorsTable({ monitors }: MonitorsTableProps) {
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
-                            onClick={() => handleToggle(monitor)}
+                            onClick={() => handlePauseResume(monitor)}
                             disabled={togglingId === monitor.id}
                           >
-                            {monitor.active ? (
+                            {!paused ? (
                               <>
                                 <Pause className="mr-2 h-4 w-4" />
                                 Pause Monitor
@@ -230,7 +253,7 @@ export function MonitorsTable({ monitors }: MonitorsTableProps) {
                             ) : (
                               <>
                                 <Play className="mr-2 h-4 w-4" />
-                                Activate Monitor
+                                Resume Monitor
                               </>
                             )}
                           </DropdownMenuItem>
@@ -246,14 +269,19 @@ export function MonitorsTable({ monitors }: MonitorsTableProps) {
                       </DropdownMenu>
                     </TableCell>
                   </TableRow>
-                ))}
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
 
           {/* Mobile Card View */}
           <div className="md:hidden divide-y">
-            {monitors.map((monitor) => (
+            {monitors.map((monitor) => {
+              const displayState = getEffectiveState(monitor);
+              const paused = isPaused(monitor);
+
+              return (
               <div key={monitor.id} className="p-4 space-y-3">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
@@ -293,10 +321,10 @@ export function MonitorsTable({ monitors }: MonitorsTableProps) {
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
-                        onClick={() => handleToggle(monitor)}
+                        onClick={() => handlePauseResume(monitor)}
                         disabled={togglingId === monitor.id}
                       >
-                        {monitor.active ? (
+                        {!paused ? (
                           <>
                             <Pause className="mr-2 h-4 w-4" />
                             Pause
@@ -304,7 +332,7 @@ export function MonitorsTable({ monitors }: MonitorsTableProps) {
                         ) : (
                           <>
                             <Play className="mr-2 h-4 w-4" />
-                            Activate
+                            Resume
                           </>
                         )}
                       </DropdownMenuItem>
@@ -320,16 +348,7 @@ export function MonitorsTable({ monitors }: MonitorsTableProps) {
                   </DropdownMenu>
                 </div>
                 <div className="flex items-center gap-3 text-sm">
-                  <div className="flex items-center gap-1.5">
-                    {monitor.active ? (
-                      <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
-                    ) : (
-                      <XCircle className="h-3.5 w-3.5 text-gray-500" />
-                    )}
-                    <Badge variant={monitor.active ? "default" : "secondary"} className="text-xs">
-                      {monitor.active ? "Active" : "Paused"}
-                    </Badge>
-                  </div>
+                  <MonitorStateBadge state={displayState} active={monitor.active || displayState === "PAUSED"} className="text-xs" />
                   <Badge variant="outline" className="text-xs">
                     {monitor.method || "GET"}
                   </Badge>
@@ -341,7 +360,8 @@ export function MonitorsTable({ monitors }: MonitorsTableProps) {
                   Next check {formatNextCheck(monitor.nextCheckAt)}
                 </p>
               </div>
-            ))}
+              );
+            })}
           </div>
         </CardContent>
       </Card>
@@ -351,8 +371,8 @@ export function MonitorsTable({ monitors }: MonitorsTableProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Monitor</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this monitor? This action cannot be
-              undone and all associated logs will be permanently removed.
+              Are you sure you want to archive this monitor? It will be removed
+              from the active list, while retained history remains on the server.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Loader2, ArrowLeft } from "lucide-react";
+import { Loader2, ArrowLeft, Plus, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -58,6 +58,7 @@ const timeoutOptions = [
 export default function CreateMonitorPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [headers, setHeaders] = useState([{ key: "", value: "" }]);
 
   const form = useForm<CreateMonitorInput>({
     resolver: zodResolver(createMonitorSchema),
@@ -67,6 +68,7 @@ export default function CreateMonitorPage() {
       intervalMilliseconds: 30000,
       timeoutMilliseconds: 10000,
       monitorMethod: "GET",
+      followRedirects: true,
     },
   });
 
@@ -74,7 +76,17 @@ export default function CreateMonitorPage() {
     setIsLoading(true);
 
     try {
-      const result = await createMonitorAction(data);
+      const customHeaders = Object.fromEntries(
+        headers
+          .map((header) => [header.key.trim(), header.value.trim()])
+          .filter(([key, value]) => key && value)
+      );
+      const payload: CreateMonitorInput = {
+        ...data,
+        keyword: data.keyword?.trim() || undefined,
+        customHeaders: Object.keys(customHeaders).length > 0 ? customHeaders : undefined,
+      };
+      const result = await createMonitorAction(payload);
 
       if (result.success) {
         toast.success("Monitor created!", {
@@ -266,8 +278,150 @@ export default function CreateMonitorPage() {
                 )}
               />
 
-              <div className="flex gap-4 pt-4">
-                <Button type="submit" disabled={isLoading}>
+              <details className="rounded-lg border bg-muted/20 p-4">
+                <summary className="cursor-pointer text-sm font-medium">
+                  Advanced checks
+                </summary>
+                <div className="mt-4 space-y-5">
+                  <div className="grid gap-5 sm:grid-cols-2">
+                    <FormField
+                      control={form.control}
+                      name="expectedStatusCode"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Expected status code</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              inputMode="numeric"
+                              min={100}
+                              max={599}
+                              placeholder="Any 2xx/3xx"
+                              disabled={isLoading}
+                              value={field.value ?? ""}
+                              onChange={(event) => {
+                                const value = event.target.value;
+                                field.onChange(value ? Number(value) : undefined);
+                              }}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Leave blank to accept any 2xx or 3xx response.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="keyword"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Required keyword</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Healthy"
+                              disabled={isLoading}
+                              value={field.value ?? ""}
+                              onChange={field.onChange}
+                              onBlur={field.onBlur}
+                              name={field.name}
+                              ref={field.ref}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Response body must contain this text when provided.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="followRedirects"
+                    render={({ field }) => (
+                      <FormItem className="flex items-start gap-3 rounded-md border bg-background p-3">
+                        <FormControl>
+                          <input
+                            type="checkbox"
+                            checked={field.value ?? true}
+                            disabled={isLoading}
+                            onChange={(event) => field.onChange(event.target.checked)}
+                            className="mt-1 h-4 w-4 rounded border-input"
+                          />
+                        </FormControl>
+                        <div className="space-y-1">
+                          <FormLabel>Follow redirects</FormLabel>
+                          <FormDescription>
+                            Keep enabled unless redirects should count as failures.
+                          </FormDescription>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="space-y-3">
+                    <div>
+                      <FormLabel>Custom headers</FormLabel>
+                      <FormDescription>
+                        Optional request headers sent with each check.
+                      </FormDescription>
+                    </div>
+                    <div className="space-y-2">
+                      {headers.map((header, index) => (
+                        <div key={index} className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
+                          <Input
+                            placeholder="Header name"
+                            disabled={isLoading}
+                            value={header.key}
+                            onChange={(event) => {
+                              const next = [...headers];
+                              next[index] = { ...next[index], key: event.target.value };
+                              setHeaders(next);
+                            }}
+                          />
+                          <Input
+                            placeholder="Header value"
+                            disabled={isLoading}
+                            value={header.value}
+                            onChange={(event) => {
+                              const next = [...headers];
+                              next[index] = { ...next[index], value: event.target.value };
+                              setHeaders(next);
+                            }}
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            disabled={isLoading || headers.length === 1}
+                            onClick={() => setHeaders((current) => current.filter((_, i) => i !== index))}
+                          >
+                            <X className="h-4 w-4" />
+                            <span className="sr-only">Remove header</span>
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={isLoading}
+                      onClick={() => setHeaders((current) => [...current, { key: "", value: "" }])}
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add header
+                    </Button>
+                  </div>
+                </div>
+              </details>
+
+              <div className="flex flex-col gap-3 pt-4 sm:flex-row sm:gap-4">
+                <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Create Monitor
                 </Button>
@@ -276,6 +430,7 @@ export default function CreateMonitorPage() {
                   variant="outline"
                   onClick={() => router.back()}
                   disabled={isLoading}
+                  className="w-full sm:w-auto"
                 >
                   Cancel
                 </Button>

@@ -73,8 +73,6 @@ export async function signinAction(
   const cookieStore = await cookies();
 
   if (setCookies && setCookies.length > 0) {
-    console.log("Setting cookies from backend:", setCookies);
-
     for (const setCookie of setCookies) {
       // Parse the Set-Cookie header
       const [cookiePart, ...optionsParts] = setCookie.split(";");
@@ -106,23 +104,13 @@ export async function signinAction(
           if (keyLower === "max-age") options.maxAge = parseInt(val || "0", 10);
         }
 
-        console.log(`Setting cookie: ${name.trim()} with value length: ${value.length}`);
-        console.log(`Cookie options:`, options);
-
         try {
           cookieStore.set(name.trim(), value.trim(), options);
-          console.log(`Cookie ${name.trim()} set successfully`);
-
-          // Verify the cookie was set
-          const verifySet = cookieStore.get(name.trim());
-          console.log(`Verification - Cookie ${name.trim()} exists: ${!!verifySet}`);
         } catch (err) {
           console.error(`Failed to set cookie ${name.trim()}:`, err);
         }
       }
     }
-  } else {
-    console.log("No Set-Cookie headers from backend, checking if backend uses different auth mechanism");
   }
 
   return {

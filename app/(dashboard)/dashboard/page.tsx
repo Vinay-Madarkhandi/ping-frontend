@@ -12,9 +12,14 @@ import {
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { getMonitors } from "@/lib/api/monitors";
+import { getMonitorsWithStatus } from "@/lib/api/monitors";
 import { Monitor } from "@/lib/types";
+import { AutoRefresh } from "@/components/shared/auto-refresh";
+import {
+  getMonitorDisplayState,
+  MonitorStateBadge,
+} from "@/components/shared/monitor-state-badge";
+import { StatusDistributionChart } from "./status-distribution-chart";
 
 function StatsCard({
   title,
@@ -31,13 +36,13 @@ function StatsCard({
 }) {
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2 sm:p-6 sm:pb-2">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
         <Icon className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
         <div className="text-2xl font-bold">{value}</div>
-        <p className="text-xs text-muted-foreground flex items-center gap-1">
+        <p className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground">
           {trend === "up" && <ArrowUpRight className="h-3 w-3 text-green-500" />}
           {trend === "down" && <ArrowDownRight className="h-3 w-3 text-red-500" />}
           {description}
@@ -54,15 +59,23 @@ function MonitorCard({ monitor }: { monitor: Monitor }) {
     ? "text-yellow-500"
     : "text-red-500";
 
+  const displayState = getMonitorDisplayState(monitor);
+
   return (
     <Link href={`/monitors/${monitor.id}`}>
-      <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
+      <Card className="cursor-pointer transition-colors hover:bg-muted/50">
         <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+          <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-center gap-3">
               <div
                 className={`p-2 rounded-full ${
-                  monitor.active ? "bg-green-500/10" : "bg-gray-500/10"
+                  displayState === "DOWN"
+                    ? "bg-red-500/10"
+                    : displayState === "SUSPECT"
+                    ? "bg-amber-500/10"
+                    : monitor.active
+                    ? "bg-green-500/10"
+                    : "bg-gray-500/10"
                 }`}
               >
                 {monitor.active ? (
@@ -71,17 +84,15 @@ function MonitorCard({ monitor }: { monitor: Monitor }) {
                   <XCircle className="h-4 w-4 text-gray-500" />
                 )}
               </div>
-              <div>
-                <h3 className="font-medium">{monitor.name}</h3>
-                <p className="text-sm text-muted-foreground truncate max-w-[200px]">
+              <div className="min-w-0">
+                <h3 className="truncate font-medium">{monitor.name}</h3>
+                <p className="truncate text-sm text-muted-foreground sm:max-w-[200px]">
                   {monitor.url}
                 </p>
               </div>
             </div>
-            <div className="flex flex-col items-end gap-1">
-              <Badge variant={monitor.active ? "default" : "secondary"}>
-                {monitor.active ? "Active" : "Paused"}
-              </Badge>
+            <div className="flex flex-row items-center justify-between gap-2 sm:flex-col sm:items-end">
+              <MonitorStateBadge state={displayState} active={monitor.active || displayState === "PAUSED"} />
               <span className={`text-xs font-medium ${uptimeColor}`}>
                 {monitor.uptimePercentage.toFixed(1)}% uptime
               </span>
@@ -115,11 +126,11 @@ function EmptyState() {
 }
 
 export default async function DashboardPage() {
-  const { data: monitors, error } = await getMonitors();
+  const { data: monitors, error } = await getMonitorsWithStatus();
 
   const totalMonitors = monitors?.length ?? 0;
   const activeMonitors = monitors?.filter((m) => m.active).length ?? 0;
-  const inactiveMonitors = totalMonitors - activeMonitors;
+  const pausedMonitors = monitors?.filter((m) => getMonitorDisplayState(m) === "PAUSED").length ?? 0;
 
   // Calculate average uptime from all monitors
   const averageUptime = monitors && monitors.length > 0
@@ -128,6 +139,8 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
+      <AutoRefresh intervalMs={30000} />
+
       {/* Page Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -145,7 +158,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
         <StatsCard
           title="Total Monitors"
           value={totalMonitors}
@@ -161,8 +174,8 @@ export default async function DashboardPage() {
         />
         <StatsCard
           title="Paused Monitors"
-          value={inactiveMonitors}
-          description="Not monitoring"
+          value={pausedMonitors}
+          description="Excluded from uptime"
           icon={Clock}
         />
         <StatsCard
@@ -203,14 +216,18 @@ export default async function DashboardPage() {
         ) : totalMonitors === 0 ? (
           <EmptyState />
         ) : (
-          <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-            {monitors?.slice(0, 6).map((monitor) => (
-              <MonitorCard key={monitor.id} monitor={monitor} />
-            ))}
-          </div>
+          <>
+            <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
+              <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+                {monitors?.slice(0, 6).map((monitor) => (
+                  <MonitorCard key={monitor.id} monitor={monitor} />
+                ))}
+              </div>
+              <StatusDistributionChart monitors={monitors ?? []} />
+            </div>
+          </>
         )}
       </div>
     </div>
   );
 }
-

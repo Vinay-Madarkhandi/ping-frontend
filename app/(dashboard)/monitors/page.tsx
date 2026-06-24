@@ -3,8 +3,9 @@ import { PlusCircle, Server } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { getMonitors } from "@/lib/api/monitors";
+import { getMonitorsWithStatus } from "@/lib/api/monitors";
 import { MonitorsTable } from "./monitors-table";
+import { AutoRefresh } from "@/components/shared/auto-refresh";
 
 function EmptyState() {
   return (
@@ -29,10 +30,12 @@ function EmptyState() {
 }
 
 export default async function MonitorsPage() {
-  const { data: monitors, error } = await getMonitors();
+  const { data: monitors, error } = await getMonitorsWithStatus();
 
   return (
     <div className="space-y-4 sm:space-y-6">
+      <AutoRefresh intervalMs={30000} />
+
       {/* Page Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -65,4 +68,3 @@ export default async function MonitorsPage() {
     </div>
   );
 }
-
