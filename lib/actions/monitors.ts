@@ -1,16 +1,32 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createMonitor, deleteMonitor, toggleMonitorStatus } from "@/lib/api/monitors";
+import {
+  createMonitor,
+  deleteMonitor,
+  pauseMonitor,
+  resumeMonitor,
+  toggleMonitorStatus,
+} from "@/lib/api/monitors";
 import { createMonitorSchema, CreateMonitorInput } from "@/lib/validations";
-import { ActionResult, Monitor } from "@/lib/types";
+import { ActionResult, CreateMonitorResponse } from "@/lib/types";
+
+function revalidateMonitorViews(monitorId?: string) {
+  revalidatePath("/monitors");
+  revalidatePath("/dashboard");
+  revalidatePath("/analytics");
+
+  if (monitorId) {
+    revalidatePath(`/monitors/${monitorId}`);
+  }
+}
 
 /**
  * Server Action: Create a new monitor
  */
 export async function createMonitorAction(
   formData: CreateMonitorInput
-): Promise<ActionResult<Monitor>> {
+): Promise<ActionResult<CreateMonitorResponse>> {
   // Server-side validation
   const validationResult = createMonitorSchema.safeParse(formData);
 
@@ -30,9 +46,7 @@ export async function createMonitorAction(
     };
   }
 
-  // Revalidate monitors list
-  revalidatePath("/monitors");
-  revalidatePath("/dashboard");
+  revalidateMonitorViews(data?.id);
 
   return {
     success: true,
@@ -62,9 +76,7 @@ export async function deleteMonitorAction(
     };
   }
 
-  // Revalidate monitors list
-  revalidatePath("/monitors");
-  revalidatePath("/dashboard");
+  revalidateMonitorViews(monitorId);
 
   return {
     success: true,
@@ -77,7 +89,7 @@ export async function deleteMonitorAction(
 export async function toggleMonitorAction(
   monitorId: string,
   active: boolean
-): Promise<ActionResult<Monitor>> {
+): Promise<ActionResult> {
   if (!monitorId) {
     return {
       success: false,
@@ -85,7 +97,7 @@ export async function toggleMonitorAction(
     };
   }
 
-  const { data, error } = await toggleMonitorStatus(monitorId, active);
+  const { error } = await toggleMonitorStatus(monitorId, active);
 
   if (error) {
     return {
@@ -94,14 +106,67 @@ export async function toggleMonitorAction(
     };
   }
 
-  // Revalidate monitors list
-  revalidatePath("/monitors");
-  revalidatePath(`/monitors/${monitorId}`);
-  revalidatePath("/dashboard");
+  revalidateMonitorViews(monitorId);
 
   return {
     success: true,
-    data,
   };
 }
 
+/**
+ * Server Action: Pause a monitor
+ */
+export async function pauseMonitorAction(
+  monitorId: string
+): Promise<ActionResult> {
+  if (!monitorId) {
+    return {
+      success: false,
+      error: "Monitor ID is required",
+    };
+  }
+
+  const { error } = await pauseMonitor(monitorId);
+
+  if (error) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+
+  revalidateMonitorViews(monitorId);
+
+  return {
+    success: true,
+  };
+}
+
+/**
+ * Server Action: Resume a paused monitor
+ */
+export async function resumeMonitorAction(
+  monitorId: string
+): Promise<ActionResult> {
+  if (!monitorId) {
+    return {
+      success: false,
+      error: "Monitor ID is required",
+    };
+  }
+
+  const { error } = await resumeMonitor(monitorId);
+
+  if (error) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+
+  revalidateMonitorViews(monitorId);
+
+  return {
+    success: true,
+  };
+}

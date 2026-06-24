@@ -32,21 +32,10 @@ export async function serverFetch<T>(
   const cookieStore = await cookies();
   const allCookies = cookieStore.getAll();
 
-  // Get specifically the JwtToken
-  const jwtCookie = cookieStore.get("JwtToken");
-
-  // Log all available cookies for debugging
-  console.log(`[API] ${options.method || "GET"} ${endpoint}`);
-  console.log(`[API] JwtToken present: ${!!jwtCookie}, value length: ${jwtCookie?.value?.length || 0}`);
-
   // Format cookies as "name=value; name2=value2" for the Cookie header
   const cookieHeader = allCookies
     .map((cookie) => `${cookie.name}=${cookie.value}`)
     .join("; ");
-
-  if (!jwtCookie) {
-    console.log(`[API] WARNING: JwtToken cookie not found!`);
-  }
 
   const headers: HeadersInit = {
     "Content-Type": "application/json",
@@ -68,11 +57,7 @@ export async function serverFetch<T>(
   }
 
   try {
-    console.log(`[API] Sending request to: ${API_BASE_URL}${endpoint}`);
     const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
-
-    // Log response status for debugging
-    console.log(`[API] Response for ${endpoint}: ${response.status} ${response.statusText}`);
 
     // Extract Set-Cookie headers for auth responses
     const setCookies = response.headers.getSetCookie();
@@ -94,7 +79,6 @@ export async function serverFetch<T>(
     const data = await response.json();
 
     if (!response.ok) {
-      console.log(`[API] Error response:`, data);
       return {
         error: {
           message: data.message || data.error || "An unexpected error occurred",

@@ -43,6 +43,15 @@ export const createMonitorSchema = z.object({
   monitorMethod: z.enum(["GET", "POST"], {
     message: "Please select a valid HTTP method",
   }),
+  expectedStatusCode: z
+    .number()
+    .int("Expected status code must be a whole number")
+    .min(100, "Expected status code must be at least 100")
+    .max(599, "Expected status code must be at most 599")
+    .optional(),
+  keyword: z.string().max(500, "Keyword must be at most 500 characters").optional(),
+  followRedirects: z.boolean().optional(),
+  customHeaders: z.record(z.string(), z.string()).optional(),
 });
 
 // Type exports

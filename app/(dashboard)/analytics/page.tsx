@@ -1,11 +1,12 @@
 import { BarChart3 } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getMonitors } from "@/lib/api/monitors";
+import { getMonitorsWithStatus } from "@/lib/api/monitors";
 import { AnalyticsCharts } from "./analytics-charts";
+import { AutoRefresh } from "@/components/shared/auto-refresh";
 
 export default async function AnalyticsPage() {
-  const { data: monitors, error } = await getMonitors();
+  const { data: monitors, error } = await getMonitorsWithStatus();
 
   if (error) {
     return (
@@ -51,6 +52,8 @@ export default async function AnalyticsPage() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
+      <AutoRefresh intervalMs={60000} />
+
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Analytics</h1>
         <p className="text-sm sm:text-base text-muted-foreground">
@@ -59,15 +62,15 @@ export default async function AnalyticsPage() {
       </div>
 
       {/* Overview Cards */}
-      <div className="grid gap-3 sm:gap-4 grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
         <Card>
-          <CardHeader className="p-3 sm:p-6 pb-2">
+          <CardHeader className="p-4 pb-2 sm:p-6 sm:pb-2">
             <CardDescription className="text-xs sm:text-sm">Total Monitors</CardDescription>
             <CardTitle className="text-2xl sm:text-4xl">{monitors.length}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
-          <CardHeader className="p-3 sm:p-6 pb-2">
+          <CardHeader className="p-4 pb-2 sm:p-6 sm:pb-2">
             <CardDescription className="text-xs sm:text-sm">Active Monitors</CardDescription>
             <CardTitle className="text-2xl sm:text-4xl text-green-500">
               {monitors.filter((m) => m.active).length}
@@ -75,7 +78,7 @@ export default async function AnalyticsPage() {
           </CardHeader>
         </Card>
         <Card>
-          <CardHeader className="p-3 sm:p-6 pb-2">
+          <CardHeader className="p-4 pb-2 sm:p-6 sm:pb-2">
             <CardDescription className="text-xs sm:text-sm">Paused Monitors</CardDescription>
             <CardTitle className="text-2xl sm:text-4xl text-muted-foreground">
               {monitors.filter((m) => !m.active).length}
@@ -89,4 +92,3 @@ export default async function AnalyticsPage() {
     </div>
   );
 }
-

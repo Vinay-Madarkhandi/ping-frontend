@@ -26,6 +26,18 @@ export interface CreateMonitorRequest {
   intervalMilliseconds: number;
   timeoutMilliseconds: number;
   monitorMethod: "GET" | "POST";
+  expectedStatusCode?: number;
+  keyword?: string;
+  followRedirects?: boolean;
+  customHeaders?: Record<string, string>;
+}
+
+export interface CreateMonitorResponse {
+  id: string;
+  name: string;
+  url: string;
+  active: boolean;
+  createdAt: string;
 }
 
 export interface Monitor {
@@ -36,8 +48,15 @@ export interface Monitor {
   method: "GET" | "POST";
   nextCheckAt: string;
   uptimePercentage: number;
-  createdAt?: string; // Optional - only returned by create endpoint
+  paused?: boolean;
+  currentState?: MonitorHealthState;
+  displayState?: MonitorDisplayState;
+  createdAt?: string;
 }
+
+export type MonitorHealthState = "UNKNOWN" | "UP" | "SUSPECT" | "DOWN";
+export type MonitorDisplayState = MonitorHealthState | "PAUSED";
+export type MonitorLogOutcome = "UP" | "DOWN" | "INCONCLUSIVE";
 
 export interface MonitorLog {
   statusCode: number;
@@ -45,6 +64,7 @@ export interface MonitorLog {
   errorMessage: string | null;
   checkedAt: string;
   up: boolean;
+  outcome?: MonitorLogOutcome;
 }
 
 export interface PaginatedResponse<T> {
@@ -63,8 +83,31 @@ export interface MonitorStatus {
   totalUp: number;
   totalDown: number;
   lastDowntimeAt: string | null;
-  lastCheckedAt: string;
+  lastCheckedAt: string | null;
   up: boolean;
+  currentState: MonitorHealthState;
+  displayState: MonitorDisplayState;
+}
+
+export interface Incident {
+  id: string;
+  startedAt: string;
+  resolvedAt: string | null;
+  durationSeconds: number | null;
+  failureReason: string | null;
+  status: "OPEN" | "RESOLVED";
+}
+
+export interface Uptime {
+  monitorId: string;
+  windowStart: string;
+  windowEnd: string;
+  uptimePercentage: number | null;
+  windowSeconds: number;
+  monitoredSeconds: number;
+  downSeconds: number;
+  pausedSeconds: number;
+  gapSeconds: number;
 }
 
 // API Error Types
