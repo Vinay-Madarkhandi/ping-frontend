@@ -3,7 +3,7 @@ import "server-only";
 import { cookies } from "next/headers";
 import { ApiError } from "@/lib/types";
 
-const API_BASE_URL = process.env.BACKEND_API_URL || "http://api.pingmeheart.online/";
+const API_BASE_URL = process.env.BACKEND_API_URL || "http://api.pingmeheart.online";
 
 interface FetchOptions extends Omit<RequestInit, "body"> {
   body?: unknown;
