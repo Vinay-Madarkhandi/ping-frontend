@@ -28,19 +28,13 @@ export async function serverFetch<T>(
 ): Promise<ApiResponse<T>> {
   const { body, headers: customHeaders, ...restOptions } = options;
 
-  // Get cookies from the incoming request and format them properly
   const cookieStore = await cookies();
-  const allCookies = cookieStore.getAll();
-
-  // Format cookies as "name=value; name2=value2" for the Cookie header
-  const cookieHeader = allCookies
-    .map((cookie) => `${cookie.name}=${cookie.value}`)
-    .join("; ");
+  const jwtToken = cookieStore.get("JwtToken")?.value;
 
   const headers: HeadersInit = {
     "Content-Type": "application/json",
     Accept: "application/json",
-    ...(cookieHeader && { Cookie: cookieHeader }),
+    ...(jwtToken && { Cookie: `JwtToken=${jwtToken}` }),
     ...customHeaders,
   };
 
@@ -105,9 +99,7 @@ export async function serverFetch<T>(
  */
 export async function isAuthenticated(): Promise<boolean> {
   const cookieStore = await cookies();
-  // Check for JWT cookie (adjust name based on your backend)
-  const token = cookieStore.get("JwtToken") || cookieStore.get("token") || cookieStore.get("jwt") || cookieStore.get("session");
-  return !!token;
+  return !!cookieStore.get("JwtToken");
 }
 
 /**
@@ -115,6 +107,5 @@ export async function isAuthenticated(): Promise<boolean> {
  */
 export async function getAuthCookie(): Promise<string | undefined> {
   const cookieStore = await cookies();
-  const token = cookieStore.get("JwtToken") || cookieStore.get("token") || cookieStore.get("jwt") || cookieStore.get("session");
-  return token?.value;
+  return cookieStore.get("JwtToken")?.value;
 }

@@ -19,6 +19,72 @@ export interface SigninResponse {
   success: boolean;
 }
 
+// Plan and usage types
+export type PlanName = "FREE" | "PRO";
+
+export interface PlanLimits {
+  name: PlanName;
+  maxMonitors: number;
+  minIntervalMs: number;
+  maxTimeoutMs: number;
+  monthlyCheckQuota: number;
+  retentionDays: number;
+  alertCooldownSeconds: number;
+  maxAlertsPerDay: number;
+  priceAmount?: number;
+  currency?: string;
+  durationDays?: number;
+}
+
+export interface CurrentUserResponse {
+  userId: string;
+  email: string;
+  userName: string;
+  subscriptionStatus?: "FREE" | "ACTIVE" | "EXPIRED";
+  subscriptionStartAt?: string | null;
+  subscriptionEndAt?: string | null;
+  plan: PlanLimits;
+}
+
+export interface UsageResponse {
+  monitorCount: number;
+  checksThisMonth: number;
+  alertsToday: number;
+  overQuota: boolean;
+}
+
+export interface AdminUsageResponse extends UsageResponse {
+  userId: string;
+  email: string;
+  plan: PlanName;
+}
+
+export interface PlanContext {
+  plan: PlanLimits;
+  usage?: UsageResponse;
+  monitorCount: number;
+  usingFallbackPlan: boolean;
+}
+
+// Billing types
+export interface BillingOrderResponse {
+  razorpayOrderId: string;
+  amount: number;
+  currency: string;
+  keyId: string;
+}
+
+export interface BillingVerifyRequest {
+  razorpay_payment_id: string;
+  razorpay_order_id: string;
+  razorpay_signature: string;
+}
+
+export interface BillingVerifyResponse {
+  success: boolean;
+  plan: PlanName;
+}
+
 // Monitor Types
 export interface CreateMonitorRequest {
   name: string;
@@ -49,13 +115,14 @@ export interface Monitor {
   nextCheckAt: string;
   uptimePercentage: number;
   paused?: boolean;
+  quotaBlocked?: boolean;
   currentState?: MonitorHealthState;
   displayState?: MonitorDisplayState;
   createdAt?: string;
 }
 
 export type MonitorHealthState = "UNKNOWN" | "UP" | "SUSPECT" | "DOWN";
-export type MonitorDisplayState = MonitorHealthState | "PAUSED";
+export type MonitorDisplayState = MonitorHealthState | "PAUSED" | "QUOTA_EXCEEDED";
 export type MonitorLogOutcome = "UP" | "DOWN" | "INCONCLUSIVE";
 
 export interface MonitorLog {
@@ -87,6 +154,7 @@ export interface MonitorStatus {
   up: boolean;
   currentState: MonitorHealthState;
   displayState: MonitorDisplayState;
+  quotaBlocked?: boolean;
 }
 
 export interface Incident {
@@ -121,4 +189,5 @@ export interface ActionResult<T = void> {
   success: boolean;
   data?: T;
   error?: string;
+  status?: number;
 }

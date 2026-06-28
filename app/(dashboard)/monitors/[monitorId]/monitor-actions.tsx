@@ -21,9 +21,17 @@ export function MonitorActions({ monitorId, status }: MonitorActionsProps) {
   const router = useRouter();
   const [isPending, setIsPending] = useState(false);
   const [optimisticPaused, setOptimisticPaused] = useState<boolean | null>(null);
+  const isQuotaBlocked = status?.quotaBlocked || status?.displayState === "QUOTA_EXCEEDED";
   const isPaused = optimisticPaused ?? status?.displayState === "PAUSED";
 
   async function handleClick() {
+    if (isQuotaBlocked) {
+      toast.error("Monthly check limit reached", {
+        description: "Monitoring resumes when the month resets, or after an upgrade.",
+      });
+      return;
+    }
+
     setIsPending(true);
     setOptimisticPaused(!isPaused);
 
@@ -52,8 +60,13 @@ export function MonitorActions({ monitorId, status }: MonitorActionsProps) {
   }
 
   return (
-    <Button variant="outline" size="sm" onClick={handleClick} disabled={isPending}>
-      {isPaused ? (
+    <Button variant="outline" size="sm" onClick={handleClick} disabled={isPending || isQuotaBlocked}>
+      {isQuotaBlocked ? (
+        <>
+          <Pause className="mr-2 h-4 w-4" />
+          Quota reached
+        </>
+      ) : isPaused ? (
         <>
           <Play className="mr-2 h-4 w-4" />
           Resume

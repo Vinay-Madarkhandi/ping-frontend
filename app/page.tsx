@@ -3,11 +3,7 @@ import { cookies } from "next/headers";
 
 export default async function HomePage() {
   const cookieStore = await cookies();
-  const token =
-    cookieStore.get("JwtToken") ||
-    cookieStore.get("token") ||
-    cookieStore.get("jwt") ||
-    cookieStore.get("session");
+  const token = cookieStore.get("JwtToken");
 
   if (token) {
     redirect("/monitors");

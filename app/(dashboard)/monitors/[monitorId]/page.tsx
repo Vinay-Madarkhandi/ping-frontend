@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   getMonitorById,
@@ -65,6 +66,7 @@ export default async function MonitorDetailPage({
   const logs = logsResult.data;
   const uptime = uptimeResult.data;
   const incidents = incidentsResult.data;
+  const quotaBlocked = status?.quotaBlocked || status?.displayState === "QUOTA_EXCEEDED" || monitor.quotaBlocked;
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -87,7 +89,7 @@ export default async function MonitorDetailPage({
                 {status ? (
                   <MonitorStateBadge state={status.displayState} className="shrink-0" />
                 ) : (
-                  <MonitorStateBadge state={monitor.active ? "UNKNOWN" : "INACTIVE"} className="shrink-0" />
+                  <MonitorStateBadge state={quotaBlocked ? "QUOTA_EXCEEDED" : monitor.active ? "UNKNOWN" : "INACTIVE"} className="shrink-0" />
                 )}
               </div>
               <div className="flex items-center gap-2 mt-1">
@@ -106,6 +108,15 @@ export default async function MonitorDetailPage({
           </div>
         </div>
       </div>
+
+      {quotaBlocked ? (
+        <Alert className="border-destructive bg-destructive/10">
+          <AlertTitle>Monthly check limit reached.</AlertTitle>
+          <AlertDescription>
+            This monitor is paused by usage limits. Monitoring resumes when the month resets, or after an upgrade.
+          </AlertDescription>
+        </Alert>
+      ) : null}
 
       {/* Status Cards */}
       {status ? (

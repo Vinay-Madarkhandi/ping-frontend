@@ -113,8 +113,16 @@ export function MonitorsTable({ monitors }: MonitorsTableProps) {
     optimisticStates[monitor.id] ?? getMonitorDisplayState(monitor);
 
   const isPaused = (monitor: Monitor) => getEffectiveState(monitor) === "PAUSED" || !monitor.active;
+  const isQuotaBlocked = (monitor: Monitor) => getEffectiveState(monitor) === "QUOTA_EXCEEDED";
 
   const handlePauseResume = async (monitor: Monitor) => {
+    if (isQuotaBlocked(monitor)) {
+      toast.error("Monthly check limit reached", {
+        description: "Monitoring resumes when the month resets, or after an upgrade.",
+      });
+      return;
+    }
+
     const paused = isPaused(monitor);
     setTogglingId(monitor.id);
     setOptimisticStates((current) => ({
@@ -183,11 +191,12 @@ export function MonitorsTable({ monitors }: MonitorsTableProps) {
                 {monitors.map((monitor) => {
                   const displayState = getEffectiveState(monitor);
                   const paused = isPaused(monitor);
+                  const quotaBlocked = isQuotaBlocked(monitor);
 
                   return (
                   <TableRow key={monitor.id}>
                     <TableCell>
-                      <MonitorStateBadge state={displayState} active={monitor.active || displayState === "PAUSED"} />
+                      <MonitorStateBadge state={displayState} active={monitor.active || displayState === "PAUSED" || displayState === "QUOTA_EXCEEDED"} />
                     </TableCell>
                     <TableCell>
                       <Link
@@ -243,9 +252,14 @@ export function MonitorsTable({ monitors }: MonitorsTableProps) {
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
                             onClick={() => handlePauseResume(monitor)}
-                            disabled={togglingId === monitor.id}
+                            disabled={togglingId === monitor.id || quotaBlocked}
                           >
-                            {!paused ? (
+                            {quotaBlocked ? (
+                              <>
+                                <Pause className="mr-2 h-4 w-4" />
+                                Monthly quota reached
+                              </>
+                            ) : !paused ? (
                               <>
                                 <Pause className="mr-2 h-4 w-4" />
                                 Pause Monitor
@@ -280,6 +294,7 @@ export function MonitorsTable({ monitors }: MonitorsTableProps) {
             {monitors.map((monitor) => {
               const displayState = getEffectiveState(monitor);
               const paused = isPaused(monitor);
+              const quotaBlocked = isQuotaBlocked(monitor);
 
               return (
               <div key={monitor.id} className="p-4 space-y-3">
@@ -322,9 +337,14 @@ export function MonitorsTable({ monitors }: MonitorsTableProps) {
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         onClick={() => handlePauseResume(monitor)}
-                        disabled={togglingId === monitor.id}
+                        disabled={togglingId === monitor.id || quotaBlocked}
                       >
-                        {!paused ? (
+                        {quotaBlocked ? (
+                          <>
+                            <Pause className="mr-2 h-4 w-4" />
+                            Monthly quota reached
+                          </>
+                        ) : !paused ? (
                           <>
                             <Pause className="mr-2 h-4 w-4" />
                             Pause
@@ -348,7 +368,7 @@ export function MonitorsTable({ monitors }: MonitorsTableProps) {
                   </DropdownMenu>
                 </div>
                 <div className="flex items-center gap-3 text-sm">
-                  <MonitorStateBadge state={displayState} active={monitor.active || displayState === "PAUSED"} className="text-xs" />
+                  <MonitorStateBadge state={displayState} active={monitor.active || displayState === "PAUSED" || displayState === "QUOTA_EXCEEDED"} className="text-xs" />
                   <Badge variant="outline" className="text-xs">
                     {monitor.method || "GET"}
                   </Badge>

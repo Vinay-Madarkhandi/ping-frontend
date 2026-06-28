@@ -43,6 +43,7 @@ export async function createMonitorAction(
     return {
       success: false,
       error: error.message,
+      status: error.status,
     };
   }
 
@@ -73,6 +74,7 @@ export async function deleteMonitorAction(
     return {
       success: false,
       error: error.message,
+      status: error.status,
     };
   }
 
@@ -103,6 +105,7 @@ export async function toggleMonitorAction(
     return {
       success: false,
       error: error.message,
+      status: error.status,
     };
   }
 
@@ -132,6 +135,7 @@ export async function pauseMonitorAction(
     return {
       success: false,
       error: error.message,
+      status: error.status,
     };
   }
 
@@ -161,6 +165,7 @@ export async function resumeMonitorAction(
     return {
       success: false,
       error: error.message,
+      status: error.status,
     };
   }
 

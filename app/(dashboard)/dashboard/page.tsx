@@ -7,18 +7,23 @@ import {
   Server,
   CheckCircle2,
   XCircle,
-  PlusCircle,
 } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getMonitorsWithStatus } from "@/lib/api/monitors";
-import { Monitor } from "@/lib/types";
+import { getCurrentUser } from "@/lib/api/auth";
+import { getUsage } from "@/lib/api/usage";
+import { Monitor, PlanContext } from "@/lib/types";
 import { AutoRefresh } from "@/components/shared/auto-refresh";
 import {
   getMonitorDisplayState,
   MonitorStateBadge,
 } from "@/components/shared/monitor-state-badge";
+import { NewMonitorCta } from "@/components/shared/new-monitor-cta";
+import { QuotaBanner } from "@/components/shared/quota-banner";
+import { UsageMeter } from "@/components/shared/usage-meter";
+import { createPlanContext } from "@/lib/plans";
 import { StatusDistributionChart } from "./status-distribution-chart";
 
 function StatsCard({
@@ -104,7 +109,7 @@ function MonitorCard({ monitor }: { monitor: Monitor }) {
   );
 }
 
-function EmptyState() {
+function EmptyState({ planContext }: { planContext: PlanContext }) {
   return (
     <Card className="border-dashed">
       <CardContent className="flex flex-col items-center justify-center py-12">
@@ -114,23 +119,29 @@ function EmptyState() {
           Create your first monitor to start tracking the health of your servers and
           services.
         </p>
-        <Button asChild>
-          <Link href="/monitors/create">
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Create Monitor
-          </Link>
-        </Button>
+        <NewMonitorCta planContext={planContext} />
       </CardContent>
     </Card>
   );
 }
 
 export default async function DashboardPage() {
-  const { data: monitors, error } = await getMonitorsWithStatus();
+  const [monitorsResult, currentUserResult, usageResult] = await Promise.all([
+    getMonitorsWithStatus(),
+    getCurrentUser(),
+    getUsage(),
+  ]);
+  const { data: monitors, error } = monitorsResult;
 
   const totalMonitors = monitors?.length ?? 0;
   const activeMonitors = monitors?.filter((m) => m.active).length ?? 0;
   const pausedMonitors = monitors?.filter((m) => getMonitorDisplayState(m) === "PAUSED").length ?? 0;
+  const quotaBlockedMonitors = monitors?.filter((m) => getMonitorDisplayState(m) === "QUOTA_EXCEEDED").length ?? 0;
+  const planContext = createPlanContext({
+    currentUser: currentUserResult.data,
+    usage: usageResult.data,
+    monitorCount: totalMonitors,
+  });
 
   // Calculate average uptime from all monitors
   const averageUptime = monitors && monitors.length > 0
@@ -140,6 +151,7 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-4 sm:space-y-6">
       <AutoRefresh intervalMs={30000} />
+      <QuotaBanner planContext={planContext} />
 
       {/* Page Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -149,12 +161,7 @@ export default async function DashboardPage() {
             Overview of your monitoring infrastructure
           </p>
         </div>
-        <Button asChild className="w-full sm:w-auto">
-          <Link href="/monitors/create">
-            <PlusCircle className="mr-2 h-4 w-4" />
-            New Monitor
-          </Link>
-        </Button>
+        <NewMonitorCta planContext={planContext} className="w-full sm:w-auto" />
       </div>
 
       {/* Stats Cards */}
@@ -174,8 +181,8 @@ export default async function DashboardPage() {
         />
         <StatsCard
           title="Paused Monitors"
-          value={pausedMonitors}
-          description="Excluded from uptime"
+          value={pausedMonitors + quotaBlockedMonitors}
+          description={quotaBlockedMonitors > 0 ? "Quota-blocked included" : "Excluded from uptime"}
           icon={Clock}
         />
         <StatsCard
@@ -186,6 +193,8 @@ export default async function DashboardPage() {
           trend={error ? "down" : averageUptime >= 95 ? "up" : "down"}
         />
       </div>
+
+      <UsageMeter planContext={planContext} />
 
       {/* Monitors Section */}
       <div>
@@ -214,7 +223,7 @@ export default async function DashboardPage() {
             </CardHeader>
           </Card>
         ) : totalMonitors === 0 ? (
-          <EmptyState />
+          <EmptyState planContext={planContext} />
         ) : (
           <>
             <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">

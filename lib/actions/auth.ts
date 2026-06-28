@@ -124,11 +124,7 @@ export async function signinAction(
 export async function signoutAction(): Promise<void> {
   const cookieStore = await cookies();
 
-  // Clear all possible auth cookies
   cookieStore.delete("JwtToken");
-  cookieStore.delete("token");
-  cookieStore.delete("jwt");
-  cookieStore.delete("session");
 
   redirect("/signin");
 }

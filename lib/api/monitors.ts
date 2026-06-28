@@ -57,6 +57,7 @@ export async function getMonitorsWithStatus(): Promise<ApiResponse<Monitor[]>> {
         ...monitor,
         currentState: status.currentState,
         displayState: status.displayState,
+        quotaBlocked: status.quotaBlocked || status.displayState === "QUOTA_EXCEEDED",
         paused: status.displayState === "PAUSED",
         uptimePercentage: monitor.uptimePercentage ?? status.uptimePercentage,
       };

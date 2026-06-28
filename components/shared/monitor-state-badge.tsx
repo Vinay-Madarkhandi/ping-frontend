@@ -5,6 +5,7 @@ import {
   CircleHelp,
   PauseCircle,
   PowerOff,
+  ShieldAlert,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +17,7 @@ const stateStyles: Record<MonitorDisplayState, string> = {
   SUSPECT: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400",
   DOWN: "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-400",
   PAUSED: "border-slate-500/30 bg-slate-500/10 text-slate-700 dark:text-slate-300",
+  QUOTA_EXCEEDED: "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-400",
   UNKNOWN: "border-slate-500/30 bg-slate-500/10 text-slate-700 dark:text-slate-300",
 };
 
@@ -24,10 +26,12 @@ const stateIcons = {
   SUSPECT: AlertTriangle,
   DOWN: AlertCircle,
   PAUSED: PauseCircle,
+  QUOTA_EXCEEDED: ShieldAlert,
   UNKNOWN: CircleHelp,
 };
 
 export function getMonitorDisplayState(monitor: Monitor): MonitorDisplayState | "INACTIVE" {
+  if (monitor.quotaBlocked) return "QUOTA_EXCEEDED";
   if (monitor.displayState) return monitor.displayState;
   if (monitor.paused) return "PAUSED";
   return monitor.active ? "UNKNOWN" : "INACTIVE";
@@ -59,7 +63,7 @@ export function MonitorStateBadge({
   return (
     <Badge variant="outline" className={cn("gap-1.5", stateStyles[state], className)}>
       <Icon className="h-3 w-3" />
-      {state}
+      {state === "QUOTA_EXCEEDED" ? "Quota reached" : state}
     </Badge>
   );
 }

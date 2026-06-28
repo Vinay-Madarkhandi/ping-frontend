@@ -2,8 +2,22 @@ import { Bell, Lock, UserRound } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { BillingSettings } from "@/components/billing/billing-settings";
+import { getCurrentUser } from "@/lib/api/auth";
+import { getUsage } from "@/lib/api/usage";
+import { createPlanContext } from "@/lib/plans";
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  const [currentUserResult, usageResult] = await Promise.all([
+    getCurrentUser(),
+    getUsage(),
+  ]);
+  const planContext = createPlanContext({
+    currentUser: currentUserResult.data,
+    usage: usageResult.data,
+    monitorCount: usageResult.data?.monitorCount ?? 0,
+  });
+
   return (
     <div className="space-y-4 sm:space-y-6">
       <div>
@@ -13,6 +27,8 @@ export default function SettingsPage() {
         </p>
       </div>
 
+      <BillingSettings currentUser={currentUserResult.data} planContext={planContext} />
+
       <div className="grid gap-4 lg:grid-cols-3">
         <Card>
           <CardHeader>
@@ -21,11 +37,16 @@ export default function SettingsPage() {
             </div>
             <CardTitle className="text-base">Account</CardTitle>
             <CardDescription>
-              Profile details are not exposed by the backend yet.
+              Signed-in user details from the backend session.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Badge variant="secondary">Future backend endpoint</Badge>
+            <p className="text-sm font-medium">
+              {currentUserResult.data?.email ?? "Account details unavailable"}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {currentUserResult.data?.userName ?? "Connect GET /api/v1/auth/me for profile data."}
+            </p>
           </CardContent>
         </Card>
 

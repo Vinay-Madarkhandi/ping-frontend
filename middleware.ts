@@ -4,22 +4,10 @@ import type { NextRequest } from "next/server";
 // Routes that require authentication
 const protectedRoutes = ["/dashboard", "/monitors", "/analytics"];
 
-// Common JWT cookie names - add your backend's cookie name here
-const AUTH_COOKIE_NAMES = ["JwtToken", "token", "jwt", "session", "JSESSIONID", "auth_token", "access_token"];
-
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Check for any auth cookie
-  let isAuthenticated = false;
-
-  for (const cookieName of AUTH_COOKIE_NAMES) {
-    const cookie = request.cookies.get(cookieName);
-    if (cookie) {
-      isAuthenticated = true;
-      break;
-    }
-  }
+  const isAuthenticated = !!request.cookies.get("JwtToken");
 
   // Check if current path is protected
   const isProtectedRoute = protectedRoutes.some(

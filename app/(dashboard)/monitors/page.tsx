@@ -1,13 +1,17 @@
-import Link from "next/link";
-import { PlusCircle, Server } from "lucide-react";
+import { Server } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { getMonitorsWithStatus } from "@/lib/api/monitors";
+import { getCurrentUser } from "@/lib/api/auth";
+import { getUsage } from "@/lib/api/usage";
+import { PlanContext } from "@/lib/types";
+import { createPlanContext } from "@/lib/plans";
+import { NewMonitorCta } from "@/components/shared/new-monitor-cta";
+import { QuotaBanner } from "@/components/shared/quota-banner";
 import { MonitorsTable } from "./monitors-table";
 import { AutoRefresh } from "@/components/shared/auto-refresh";
 
-function EmptyState() {
+function EmptyState({ planContext }: { planContext: PlanContext }) {
   return (
     <Card className="border-dashed">
       <CardContent className="flex flex-col items-center justify-center py-8 sm:py-16 px-4">
@@ -18,23 +22,29 @@ function EmptyState() {
           You&apos;ll be able to track uptime, response times, and get alerted when
           things go wrong.
         </p>
-        <Button asChild size="default" className="w-full sm:w-auto">
-          <Link href="/monitors/create">
-            <PlusCircle className="mr-2 h-5 w-5" />
-            Create Your First Monitor
-          </Link>
-        </Button>
+        <NewMonitorCta planContext={planContext} className="w-full sm:w-auto" />
       </CardContent>
     </Card>
   );
 }
 
 export default async function MonitorsPage() {
-  const { data: monitors, error } = await getMonitorsWithStatus();
+  const [monitorsResult, currentUserResult, usageResult] = await Promise.all([
+    getMonitorsWithStatus(),
+    getCurrentUser(),
+    getUsage(),
+  ]);
+  const { data: monitors, error } = monitorsResult;
+  const planContext = createPlanContext({
+    currentUser: currentUserResult.data,
+    usage: usageResult.data,
+    monitorCount: monitors?.length ?? 0,
+  });
 
   return (
     <div className="space-y-4 sm:space-y-6">
       <AutoRefresh intervalMs={30000} />
+      <QuotaBanner planContext={planContext} />
 
       {/* Page Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -44,12 +54,7 @@ export default async function MonitorsPage() {
             Manage and view all your configured monitors
           </p>
         </div>
-        <Button asChild className="w-full sm:w-auto">
-          <Link href="/monitors/create">
-            <PlusCircle className="mr-2 h-4 w-4" />
-            New Monitor
-          </Link>
-        </Button>
+        <NewMonitorCta planContext={planContext} className="w-full sm:w-auto" />
       </div>
 
       {/* Content */}
@@ -61,7 +66,7 @@ export default async function MonitorsPage() {
           </CardContent>
         </Card>
       ) : !monitors || monitors.length === 0 ? (
-        <EmptyState />
+        <EmptyState planContext={planContext} />
       ) : (
         <MonitorsTable monitors={monitors} />
       )}

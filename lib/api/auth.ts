@@ -2,6 +2,7 @@ import "server-only";
 
 import { serverFetch } from "./server-client";
 import {
+  CurrentUserResponse,
   SignupRequest,
   SignupResponse,
   SigninRequest,
@@ -34,6 +35,15 @@ export async function signinUser(data: SigninRequest) {
  */
 export async function validateSession() {
   return serverFetch<SigninResponse>("/api/v1/auth/validate", {
+    method: "GET",
+  });
+}
+
+/**
+ * Get the authenticated user and plan limits.
+ */
+export async function getCurrentUser() {
+  return serverFetch<CurrentUserResponse>("/api/v1/auth/me", {
     method: "GET",
   });
 }

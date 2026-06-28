@@ -12,6 +12,7 @@ const colors = {
   SUSPECT: "#f59e0b",
   DOWN: "#ef4444",
   PAUSED: "#94a3b8",
+  QUOTA_EXCEEDED: "#dc2626",
   UNKNOWN: "#64748b",
   INACTIVE: "#475569",
 };
