@@ -53,6 +53,8 @@ export function StatusDistributionChart({ monitors }: { monitors: Monitor[] }) {
               innerRadius={45}
               outerRadius={75}
               paddingAngle={2}
+              startAngle={90}
+              endAngle={-270}
             >
               {data.map((entry) => (
                 <Cell key={entry.name} fill={entry.fill} />

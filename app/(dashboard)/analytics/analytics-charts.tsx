@@ -114,6 +114,8 @@ export function AnalyticsCharts({ monitors }: AnalyticsChartsProps) {
                 innerRadius={45}
                 outerRadius={75}
                 paddingAngle={2}
+                startAngle={90}
+                endAngle={-270}
                 dataKey="value"
               >
                 {statusData.map((entry, index) => (

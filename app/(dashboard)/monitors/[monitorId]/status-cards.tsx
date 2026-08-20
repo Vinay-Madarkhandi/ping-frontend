@@ -36,7 +36,7 @@ export function StatusCards({ status, uptime }: StatusCardsProps) {
         </CardHeader>
         <CardContent className="p-3 sm:p-6 pt-0">
           <div className="text-lg font-semibold capitalize sm:text-2xl">
-            {status.displayState.toLowerCase()}
+            {status.displayState.toLowerCase().replace("_", " ")}
           </div>
           <p className="text-[10px] sm:text-xs text-muted-foreground">
             Last checked {formatBackendRelativeTime(status.lastCheckedAt)}

@@ -58,11 +58,18 @@ export function DetailInsights({
   selectedWindow,
 }: DetailInsightsProps) {
   const upSeconds = Math.max((uptime?.monitoredSeconds ?? 0) - (uptime?.downSeconds ?? 0), 0);
+  const breakdownTotalSeconds =
+    upSeconds + (uptime?.downSeconds ?? 0) + (uptime?.pausedSeconds ?? 0) + (uptime?.gapSeconds ?? 0);
+  // Recharts' Pie mis-computes sector sweep angles when slice values are large, unnormalized
+  // integers (raw seconds, often in the tens of thousands); passing a 0-100 share instead keeps
+  // the geometry numerically stable while `value` (raw seconds) still drives the tooltip.
+  const toShare = (seconds: number) =>
+    breakdownTotalSeconds > 0 ? (seconds / breakdownTotalSeconds) * 100 : 0;
   const breakdownData = [
-    { name: "Up", value: upSeconds, fill: "var(--up)" },
-    { name: "Down", value: uptime?.downSeconds ?? 0, fill: "var(--down)" },
-    { name: "Paused", value: uptime?.pausedSeconds ?? 0, fill: "var(--paused)" },
-    { name: "Gap", value: uptime?.gapSeconds ?? 0, fill: "var(--suspect)" },
+    { name: "Up", value: upSeconds, share: toShare(upSeconds), fill: "var(--up)" },
+    { name: "Down", value: uptime?.downSeconds ?? 0, share: toShare(uptime?.downSeconds ?? 0), fill: "var(--down)" },
+    { name: "Paused", value: uptime?.pausedSeconds ?? 0, share: toShare(uptime?.pausedSeconds ?? 0), fill: "var(--paused)" },
+    { name: "Gap", value: uptime?.gapSeconds ?? 0, share: toShare(uptime?.gapSeconds ?? 0), fill: "var(--suspect)" },
   ].filter((item) => item.value > 0);
 
   const responseTimeData = (logs?.content ?? [])
@@ -123,11 +130,13 @@ export function DetailInsights({
                 <PieChart>
                   <Pie
                     data={breakdownData}
-                    dataKey="value"
+                    dataKey="share"
                     nameKey="name"
                     innerRadius={45}
                     outerRadius={75}
                     paddingAngle={2}
+                    startAngle={90}
+                    endAngle={-270}
                   >
                     {breakdownData.map((entry) => (
                       <Cell key={entry.name} fill={entry.fill} />
