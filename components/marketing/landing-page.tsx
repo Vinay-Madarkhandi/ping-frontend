@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/marketing/navbar";
 import { Hero } from "@/components/marketing/hero";
+import { HighlightCards } from "@/components/marketing/highlight-cards";
 import { Features } from "@/components/marketing/features";
 import { HowItWorks } from "@/components/marketing/how-it-works";
 import { Reliability } from "@/components/marketing/reliability";
@@ -15,6 +16,7 @@ export function LandingPage({ plans }: { plans?: PlanLimits[] }) {
       <Navbar />
       <main>
         <Hero />
+        <HighlightCards />
         <Features />
         <HowItWorks />
         <Reliability />
