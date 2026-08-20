@@ -3,11 +3,14 @@ import {
   TrendingUp,
   Activity,
   AlertTriangle,
+  ShieldCheck,
+  ShieldAlert,
+  ShieldX,
 } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MonitorStatus, Uptime } from "@/lib/types";
-import { formatBackendRelativeTime } from "@/lib/datetime";
+import { formatBackendDateTime, formatBackendRelativeTime } from "@/lib/datetime";
 import { MonitorStateBadge } from "@/components/shared/monitor-state-badge";
 
 interface StatusCardsProps {
@@ -26,8 +29,12 @@ export function StatusCards({ status, uptime }: StatusCardsProps) {
       ? "text-suspect"
       : "text-down";
 
+  const sslDays = status.sslDaysRemaining;
+  const sslTone =
+    sslDays == null ? "muted" : sslDays < 0 ? "expired" : sslDays <= 14 ? "warning" : "ok";
+
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5">
       {/* Current Status */}
       <Card className="transition-shadow hover:shadow-md">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 sm:p-6 pb-1 sm:pb-2">
@@ -101,6 +108,40 @@ export function StatusCards({ status, uptime }: StatusCardsProps) {
           </p>
         </CardContent>
       </Card>
+
+      {/* SSL Certificate */}
+      {status.sslCertExpiresAt ? (
+        <Card className="transition-shadow hover:shadow-md">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 sm:p-6 pb-1 sm:pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium">SSL Certificate</CardTitle>
+            {sslTone === "expired" ? (
+              <ShieldX className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-down" />
+            ) : sslTone === "warning" ? (
+              <ShieldAlert className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-suspect" />
+            ) : (
+              <ShieldCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-up" />
+            )}
+          </CardHeader>
+          <CardContent className="p-3 sm:p-6 pt-0">
+            <div
+              className={`text-lg font-semibold sm:text-2xl ${
+                sslTone === "expired" ? "text-down" : sslTone === "warning" ? "text-suspect" : ""
+              }`}
+            >
+              {sslDays != null && sslDays < 0
+                ? "Expired"
+                : sslDays != null
+                ? `${sslDays}d left`
+                : "—"}
+            </div>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">
+              {sslTone === "expired" ? "Expired" : "Expires"}{" "}
+              {formatBackendRelativeTime(status.sslCertExpiresAt)} ·{" "}
+              {formatBackendDateTime(status.sslCertExpiresAt, "MMM d, yyyy")}
+            </p>
+          </CardContent>
+        </Card>
+      ) : null}
     </div>
   );
 }

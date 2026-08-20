@@ -40,6 +40,7 @@ import { createMonitorAction } from "@/lib/actions/monitors";
 import { formatMilliseconds, formatNumber, isMonitorLimitReached } from "@/lib/plans";
 import { PlanContext } from "@/lib/types";
 import { createMonitorSchema, CreateMonitorInput } from "@/lib/validations";
+import { TagsInput } from "@/components/shared/tags-input";
 
 const intervalOptions = [
   { value: 10000, label: "10 seconds" },
@@ -81,6 +82,7 @@ export function CreateMonitorForm({ planContext }: { planContext: PlanContext })
       timeoutMilliseconds: getDefaultTimeout(planContext.plan.maxTimeoutMs),
       monitorMethod: "GET",
       followRedirects: true,
+      tags: [],
     }),
     [planContext.plan.maxTimeoutMs, planContext.plan.minIntervalMs]
   );
@@ -247,6 +249,25 @@ export function CreateMonitorForm({ planContext }: { planContext: PlanContext })
                       <Input placeholder="https://example.com" disabled={isLoading || limitReached} {...field} />
                     </FormControl>
                     <FormDescription>The URL to monitor.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="tags"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tags</FormLabel>
+                    <FormControl>
+                      <TagsInput
+                        value={field.value ?? []}
+                        onChange={field.onChange}
+                        disabled={isLoading || limitReached}
+                      />
+                    </FormControl>
+                    <FormDescription>Optional labels for grouping and filtering monitors.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

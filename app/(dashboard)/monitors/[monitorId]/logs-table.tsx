@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { CheckCircle2, XCircle, Clock, Zap } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, Zap, Download } from "lucide-react";
 
 import {
   Table,
@@ -54,13 +54,24 @@ export function LogsTable({ logs, monitorId }: LogsTableProps) {
   return (
     <Card>
       <CardHeader className="pb-2 sm:pb-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <div>
             <CardTitle className="text-base sm:text-lg">Check Logs</CardTitle>
             <CardDescription className="text-xs sm:text-sm">
               Showing {logs.content.length} of {logs.totalElements} total checks
             </CardDescription>
           </div>
+          {logs.content.length > 0 ? (
+            <Button variant="outline" size="sm" asChild className="shrink-0">
+              <a
+                href={`/api/export/monitors/${monitorId}/logs`}
+                title="Export the last 7 days of checks as CSV"
+              >
+                <Download className="mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">Export</span>
+              </a>
+            </Button>
+          ) : null}
         </div>
       </CardHeader>
       <CardContent className="p-0 sm:p-6 sm:pt-0">

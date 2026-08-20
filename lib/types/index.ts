@@ -97,6 +97,7 @@ export interface CreateMonitorRequest {
   keyword?: string;
   followRedirects?: boolean;
   customHeaders?: Record<string, string>;
+  tags?: string[];
 }
 
 export interface CreateMonitorResponse {
@@ -122,6 +123,9 @@ export interface Monitor {
   displayState: MonitorDisplayState;
   intervalMilliseconds: number;
   timeoutMilliseconds: number;
+  tags: string[];
+  /** Null for HTTP monitors or before the first successful TLS handshake. */
+  sslCertExpiresAt: string | null;
 }
 
 export type MonitorHealthState = "UNKNOWN" | "UP" | "SUSPECT" | "DOWN";
@@ -158,6 +162,10 @@ export interface MonitorStatus {
   currentState: MonitorHealthState;
   displayState: MonitorDisplayState;
   quotaBlocked: boolean;
+  /** Null for HTTP monitors or before the first successful TLS handshake. */
+  sslCertExpiresAt: string | null;
+  /** Convenience for the UI; null whenever sslCertExpiresAt is null. Can be negative if expired. */
+  sslDaysRemaining: number | null;
 }
 
 export interface Incident {
@@ -193,6 +201,45 @@ export interface AlertDelivery {
   lastError?: string;
   createdAt: string;
   sentAt?: string;
+}
+
+// Status Page Types
+export interface StatusPageMonitorSummary {
+  id: string;
+  name: string;
+}
+
+export interface StatusPage {
+  id: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  monitors: StatusPageMonitorSummary[];
+}
+
+export interface StatusPageRequest {
+  title: string;
+  description?: string;
+  slug: string;
+  monitorIds: string[];
+}
+
+export type PublicMonitorState = "UP" | "SUSPECT" | "DOWN" | "PAUSED" | "UNKNOWN";
+
+export interface PublicMonitorStatus {
+  name: string;
+  state: PublicMonitorState;
+  uptimePercentage90d: number | null;
+}
+
+export type OverallStatus = "OPERATIONAL" | "DEGRADED" | "PARTIAL_OUTAGE" | "MAJOR_OUTAGE";
+
+export interface PublicStatusPage {
+  title: string;
+  description: string | null;
+  overallStatus: OverallStatus;
+  monitors: PublicMonitorStatus[];
+  updatedAt: string;
 }
 
 // API Error Types

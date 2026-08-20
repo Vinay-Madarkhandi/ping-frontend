@@ -10,6 +10,7 @@ import {
   Settings,
   LogOut,
   PlusCircle,
+  Globe,
 } from "lucide-react";
 
 import {
@@ -56,6 +57,11 @@ const navigationItems = [
     title: "Alerts",
     href: "/alerts",
     icon: BellRing,
+  },
+  {
+    title: "Status Pages",
+    href: "/status-pages",
+    icon: Globe,
   },
 ];
 

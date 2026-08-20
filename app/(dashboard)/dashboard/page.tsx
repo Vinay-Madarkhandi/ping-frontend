@@ -22,6 +22,7 @@ import {
 import { StatusDot } from "@/components/shared/status-dot";
 import { NewMonitorCta } from "@/components/shared/new-monitor-cta";
 import { QuotaBanner } from "@/components/shared/quota-banner";
+import { SslExpiryBanner } from "@/components/shared/ssl-expiry-banner";
 import { UsageMeter } from "@/components/shared/usage-meter";
 import { EmailVerificationBanner } from "@/components/shared/email-verification-banner";
 import { createPlanContext } from "@/lib/plans";
@@ -157,7 +158,8 @@ export default async function DashboardPage() {
     <div className="space-y-4 sm:space-y-6">
       <AutoRefresh intervalMs={30000} />
       <QuotaBanner planContext={planContext} />
-      
+      <SslExpiryBanner monitors={monitors ?? []} />
+
       {/* Email Verification Banner */}
       {currentUserResult.data && !currentUserResult.data.emailVerified && (
         <EmailVerificationBanner email={currentUserResult.data.email} />
