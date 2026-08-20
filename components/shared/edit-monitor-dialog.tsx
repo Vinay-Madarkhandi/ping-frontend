@@ -88,10 +88,10 @@ export function EditMonitorDialog({
     resolver: zodResolver(editMonitorSchema),
     defaultValues: {
       name: monitor.name,
-      url: monitor.url,
+      url: monitor.url ?? "",
       intervalMilliseconds: monitor.intervalMilliseconds,
       timeoutMilliseconds: monitor.timeoutMilliseconds,
-      monitorMethod: monitor.method,
+      monitorMethod: monitor.method ?? "GET",
       followRedirects: true,
       active: monitor.active,
       tags: monitor.tags ?? [],
@@ -102,10 +102,10 @@ export function EditMonitorDialog({
   useEffect(() => {
     form.reset({
       name: monitor.name,
-      url: monitor.url,
+      url: monitor.url ?? "",
       intervalMilliseconds: monitor.intervalMilliseconds,
       timeoutMilliseconds: monitor.timeoutMilliseconds,
-      monitorMethod: monitor.method,
+      monitorMethod: monitor.method ?? "GET",
       followRedirects: true,
       active: monitor.active,
       tags: monitor.tags ?? [],

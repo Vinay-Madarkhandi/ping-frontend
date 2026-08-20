@@ -13,6 +13,7 @@ import {
   checkNowAction,
 } from "@/lib/actions/monitors";
 import { EditMonitorDialog } from "@/components/shared/edit-monitor-dialog";
+import { EditHeartbeatMonitorDialog } from "@/components/shared/edit-heartbeat-monitor-dialog";
 
 interface MonitorActionsProps {
   monitor: Monitor;
@@ -123,15 +124,17 @@ export function MonitorActions({
           Edit
         </Button>
 
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleCheckNow}
-          disabled={isCheckingNow || isQuotaBlocked}
-        >
-          <RefreshCw className={`mr-2 h-4 w-4 ${isCheckingNow ? "animate-spin" : ""}`} />
-          {isCheckingNow ? "Checking..." : "Check Now"}
-        </Button>
+        {monitor.kind === "HEARTBEAT" ? null : (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleCheckNow}
+            disabled={isCheckingNow || isQuotaBlocked}
+          >
+            <RefreshCw className={`mr-2 h-4 w-4 ${isCheckingNow ? "animate-spin" : ""}`} />
+            {isCheckingNow ? "Checking..." : "Check Now"}
+          </Button>
+        )}
 
         <Button 
           variant="outline" 
@@ -158,15 +161,27 @@ export function MonitorActions({
         </Button>
       </div>
 
-      <EditMonitorDialog
-        monitor={monitor}
-        planContext={planContext}
-        alertChannels={alertChannels}
-        selectedChannelIds={selectedChannelIds}
-        open={editDialogOpen}
-        onOpenChange={setEditDialogOpen}
-        onSuccess={() => router.refresh()}
-      />
+      {monitor.kind === "HEARTBEAT" ? (
+        <EditHeartbeatMonitorDialog
+          monitor={monitor}
+          planContext={planContext}
+          alertChannels={alertChannels}
+          selectedChannelIds={selectedChannelIds}
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          onSuccess={() => router.refresh()}
+        />
+      ) : (
+        <EditMonitorDialog
+          monitor={monitor}
+          planContext={planContext}
+          alertChannels={alertChannels}
+          selectedChannelIds={selectedChannelIds}
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          onSuccess={() => router.refresh()}
+        />
+      )}
     </>
   );
 }

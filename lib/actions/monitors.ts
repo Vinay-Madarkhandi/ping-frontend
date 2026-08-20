@@ -11,7 +11,16 @@ import {
   checkMonitorNow,
   restoreMonitor,
 } from "@/lib/api/monitors";
-import { createMonitorSchema, editMonitorSchema, CreateMonitorInput, EditMonitorInput } from "@/lib/validations";
+import {
+  createMonitorSchema,
+  editMonitorSchema,
+  createHeartbeatMonitorSchema,
+  editHeartbeatMonitorSchema,
+  CreateMonitorInput,
+  EditMonitorInput,
+  CreateHeartbeatMonitorInput,
+  EditHeartbeatMonitorInput,
+} from "@/lib/validations";
 import { ActionResult, CreateMonitorResponse, Monitor } from "@/lib/types";
 
 function revalidateMonitorViews(monitorId?: string) {
@@ -41,6 +50,41 @@ export async function createMonitorAction(
   }
 
   const { data, error } = await createMonitor(validationResult.data);
+
+  if (error) {
+    return {
+      success: false,
+      error: error.message,
+      status: error.status,
+    };
+  }
+
+  revalidateMonitorViews(data?.id);
+
+  return {
+    success: true,
+    data,
+  };
+}
+
+/**
+ * Server Action: Create a new heartbeat (cron/job) monitor. Kept as its own action, rather than
+ * folded into createMonitorAction, so the HTTP monitor flow's validation never has to account for
+ * a URL-less shape.
+ */
+export async function createHeartbeatMonitorAction(
+  formData: CreateHeartbeatMonitorInput
+): Promise<ActionResult<CreateMonitorResponse>> {
+  const validationResult = createHeartbeatMonitorSchema.safeParse(formData);
+
+  if (!validationResult.success) {
+    return {
+      success: false,
+      error: validationResult.error.issues[0]?.message || "Invalid input",
+    };
+  }
+
+  const { data, error } = await createMonitor({ ...validationResult.data, kind: "HEARTBEAT" });
 
   if (error) {
     return {
@@ -195,6 +239,48 @@ export async function editMonitorAction(
 
   // Server-side validation
   const validationResult = editMonitorSchema.safeParse(formData);
+
+  if (!validationResult.success) {
+    return {
+      success: false,
+      error: validationResult.error.issues[0]?.message || "Invalid input",
+    };
+  }
+
+  const { data, error } = await editMonitor(monitorId, validationResult.data);
+
+  if (error) {
+    return {
+      success: false,
+      error: error.message,
+      status: error.status,
+    };
+  }
+
+  revalidateMonitorViews(monitorId);
+
+  return {
+    success: true,
+    data,
+  };
+}
+
+/**
+ * Server Action: Edit a heartbeat monitor's configuration (name, interval, grace period, tags,
+ * active). No URL/method/etc — those don't apply to a monitor that has no URL to probe.
+ */
+export async function editHeartbeatMonitorAction(
+  monitorId: string,
+  formData: EditHeartbeatMonitorInput
+): Promise<ActionResult<Monitor>> {
+  if (!monitorId) {
+    return {
+      success: false,
+      error: "Monitor ID is required",
+    };
+  }
+
+  const validationResult = editHeartbeatMonitorSchema.safeParse(formData);
 
   if (!validationResult.success) {
     return {

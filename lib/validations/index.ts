@@ -113,6 +113,32 @@ export const editMonitorSchema = z.object({
   tags: z.array(z.string().max(30, "Tags must be at most 30 characters")).max(10, "At most 10 tags").optional(),
 });
 
+// Heartbeat (cron/job) monitor schemas — no URL to probe; an external job pings Ping instead.
+export const createHeartbeatMonitorSchema = z.object({
+  name: z
+    .string()
+    .min(1, "Name is required")
+    .max(100, "Name must be at most 100 characters"),
+  intervalMilliseconds: z
+    .number()
+    .positive("Expected interval must be greater than 0")
+    .max(86400000, "Expected interval must be at most 24 hours"),
+  timeoutMilliseconds: z
+    .number()
+    .positive("Timeout must be greater than 0")
+    .max(60000, "Timeout must be at most 60 seconds"),
+  gracePeriodMilliseconds: z
+    .number()
+    .min(0, "Grace period cannot be negative")
+    .max(86400000, "Grace period must be at most 24 hours")
+    .optional(),
+  tags: z.array(z.string().max(30, "Tags must be at most 30 characters")).max(10, "At most 10 tags").optional(),
+});
+
+export const editHeartbeatMonitorSchema = createHeartbeatMonitorSchema.extend({
+  active: z.boolean().optional(),
+});
+
 // Status page schema
 export const statusPageSchema = z.object({
   title: z
@@ -154,5 +180,7 @@ export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export type CreateMonitorInput = z.infer<typeof createMonitorSchema>;
 export type EditMonitorInput = z.infer<typeof editMonitorSchema>;
+export type CreateHeartbeatMonitorInput = z.infer<typeof createHeartbeatMonitorSchema>;
+export type EditHeartbeatMonitorInput = z.infer<typeof editHeartbeatMonitorSchema>;
 export type StatusPageInput = z.infer<typeof statusPageSchema>;
 export type AlertChannelInput = z.infer<typeof alertChannelSchema>;

@@ -73,12 +73,14 @@ export function ArchivedMonitorsTable({ monitors }: ArchivedMonitorsTableProps) 
                 <div>
                   <div>{monitor.name}</div>
                   <div className="text-xs text-muted-foreground sm:hidden">
-                    {monitor.url}
+                    {monitor.kind === "HEARTBEAT" ? "Heartbeat monitor" : monitor.url}
                   </div>
                 </div>
               </TableCell>
               <TableCell className="hidden sm:table-cell">
-                <div className="max-w-xs truncate text-sm">{monitor.url}</div>
+                <div className="max-w-xs truncate text-sm">
+                  {monitor.kind === "HEARTBEAT" ? "Heartbeat monitor" : monitor.url}
+                </div>
               </TableCell>
               <TableCell className="hidden md:table-cell">
                 <div className="text-sm text-muted-foreground">

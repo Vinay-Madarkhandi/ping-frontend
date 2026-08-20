@@ -87,12 +87,18 @@ export interface BillingVerifyResponse {
 }
 
 // Monitor Types
+export type MonitorKind = "HTTP" | "HEARTBEAT";
+
 export interface CreateMonitorRequest {
   name: string;
-  url: string;
+  /** Required for HTTP monitors; omitted for HEARTBEAT monitors (which have no URL). */
+  url?: string;
   intervalMilliseconds: number;
   timeoutMilliseconds: number;
-  monitorMethod: "GET" | "POST";
+  monitorMethod?: "GET" | "POST";
+  kind?: MonitorKind;
+  /** HEARTBEAT only: extra time past the interval before a missed ping counts as DOWN. */
+  gracePeriodMilliseconds?: number;
   expectedStatusCode?: number;
   keyword?: string;
   followRedirects?: boolean;
@@ -103,17 +109,21 @@ export interface CreateMonitorRequest {
 export interface CreateMonitorResponse {
   id: string;
   name: string;
-  url: string;
+  url: string | null;
   active: boolean;
   createdAt: string;
+  kind: MonitorKind;
+  /** The URL to ping. Present only for HEARTBEAT monitors. */
+  heartbeatUrl: string | null;
 }
 
 export interface Monitor {
   id: string;
   name: string;
-  url: string;
+  /** Null for HEARTBEAT monitors, which have no URL to probe. */
+  url: string | null;
   active: boolean;
-  method: "GET" | "POST";
+  method: "GET" | "POST" | null;
   nextCheckAt: string;
   uptimePercentage: number;
   createdAt: string;
@@ -126,6 +136,11 @@ export interface Monitor {
   tags: string[];
   /** Null for HTTP monitors or before the first successful TLS handshake. */
   sslCertExpiresAt: string | null;
+  kind: MonitorKind;
+  /** The URL an external job pings to report itself alive. Only present for HEARTBEAT monitors. */
+  heartbeatUrl: string | null;
+  /** HEARTBEAT only: extra time past the interval before a missed ping counts as DOWN. */
+  gracePeriodMilliseconds: number;
 }
 
 export type MonitorHealthState = "UNKNOWN" | "UP" | "SUSPECT" | "DOWN";
