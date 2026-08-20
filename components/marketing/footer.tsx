@@ -62,7 +62,21 @@ export function Footer() {
 
         <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t pt-6 text-xs text-muted-foreground sm:flex-row">
           <p>© {new Date().getFullYear()} Ping. All rights reserved.</p>
-          <p>Built with Spring Boot, PostgreSQL, and Next.js.</p>
+          <p>
+            Built with{" "}
+            <span aria-label="love" role="img">
+              ❤️
+            </span>{" "}
+            by{" "}
+            <a
+              href="https://vinaymadarkhandi.xyz"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-foreground hover:underline"
+            >
+              vinaymadarkhandi.xyz
+            </a>
+          </p>
         </div>
       </div>
     </footer>
