@@ -78,9 +78,9 @@ export function MonitorsTable({ monitors }: MonitorsTableProps) {
 
   const getUptimeColor = (uptime?: number) => {
     if (typeof uptime !== "number") return "text-muted-foreground";
-    if (uptime >= 99) return "text-green-500";
-    if (uptime >= 95) return "text-yellow-500";
-    return "text-red-500";
+    if (uptime >= 99) return "text-up";
+    if (uptime >= 95) return "text-suspect";
+    return "text-down";
   };
 
   const handleDelete = async () => {

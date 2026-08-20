@@ -38,7 +38,9 @@ export default async function AnalyticsPage() {
         </div>
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-8 sm:py-16 px-4">
-            <BarChart3 className="h-12 w-12 sm:h-16 sm:w-16 text-muted-foreground mb-4" />
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 sm:h-20 sm:w-20">
+              <BarChart3 className="h-7 w-7 text-primary sm:h-9 sm:w-9" />
+            </div>
             <h3 className="text-lg sm:text-xl font-semibold mb-2">No data available</h3>
             <p className="text-sm text-muted-foreground text-center max-w-md">
               Create monitors to start collecting analytics data. Charts and
@@ -72,7 +74,7 @@ export default async function AnalyticsPage() {
         <Card>
           <CardHeader className="p-4 pb-2 sm:p-6 sm:pb-2">
             <CardDescription className="text-xs sm:text-sm">Active Monitors</CardDescription>
-            <CardTitle className="text-2xl sm:text-4xl text-green-500">
+            <CardTitle className="text-2xl sm:text-4xl text-up">
               {monitors.filter((m) => m.active).length}
             </CardTitle>
           </CardHeader>

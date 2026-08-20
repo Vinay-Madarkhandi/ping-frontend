@@ -64,7 +64,7 @@ export function PasswordSettings() {
         </div>
         <CardTitle>Change Password</CardTitle>
         <CardDescription>
-          Update your password. You'll need to provide your current password.
+          Update your password. You&apos;ll need to provide your current password.
         </CardDescription>
       </CardHeader>
       <CardContent>

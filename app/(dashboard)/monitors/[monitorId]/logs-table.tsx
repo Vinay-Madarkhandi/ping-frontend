@@ -33,18 +33,17 @@ export function LogsTable({ logs, monitorId }: LogsTableProps) {
   const currentPage = parseInt(searchParams.get("page") || "0", 10);
 
   const getResponseTimeColor = (ms: number) => {
-    if (ms < 200) return "text-green-500";
-    if (ms < 500) return "text-yellow-500";
-    if (ms < 1000) return "text-orange-500";
-    return "text-red-500";
+    if (ms < 200) return "text-up";
+    if (ms < 1000) return "text-suspect";
+    return "text-down";
   };
 
   const getStatusCodeColor = (code: number) => {
-    if (code === 0) return "bg-slate-500/10 text-slate-600 dark:text-slate-300";
-    if (code >= 200 && code < 300) return "bg-green-500/10 text-green-500";
-    if (code >= 300 && code < 400) return "bg-blue-500/10 text-blue-500";
-    if (code >= 400 && code < 500) return "bg-yellow-500/10 text-yellow-500";
-    return "bg-red-500/10 text-red-500";
+    if (code === 0) return "bg-paused/10 text-paused-foreground dark:text-paused";
+    if (code >= 200 && code < 300) return "bg-up/10 text-up";
+    if (code >= 300 && code < 400) return "bg-primary/10 text-primary";
+    if (code >= 400 && code < 500) return "bg-suspect/10 text-suspect-foreground dark:text-suspect";
+    return "bg-down/10 text-down";
   };
 
   // The backend now reports the probe outcome explicitly. Only rows written before migration V11
@@ -93,11 +92,11 @@ export function LogsTable({ logs, monitorId }: LogsTableProps) {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         {log.up ? (
-                          <CheckCircle2 className="h-4 w-4 text-green-500" />
+                          <CheckCircle2 className="h-4 w-4 text-up" />
                         ) : getLogLabel(log) === "INCONCLUSIVE" ? (
-                          <Clock className="h-4 w-4 text-slate-500" />
+                          <Clock className="h-4 w-4 text-paused" />
                         ) : (
-                          <XCircle className="h-4 w-4 text-red-500" />
+                          <XCircle className="h-4 w-4 text-down" />
                         )}
                         <Badge variant={log.up ? "default" : getLogLabel(log) === "INCONCLUSIVE" ? "secondary" : "destructive"}>
                           {getLogLabel(log)}
@@ -154,11 +153,11 @@ export function LogsTable({ logs, monitorId }: LogsTableProps) {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       {log.up ? (
-                        <CheckCircle2 className="h-4 w-4 text-green-500" />
+                        <CheckCircle2 className="h-4 w-4 text-up" />
                       ) : getLogLabel(log) === "INCONCLUSIVE" ? (
-                        <Clock className="h-4 w-4 text-slate-500" />
+                        <Clock className="h-4 w-4 text-paused" />
                       ) : (
-                        <XCircle className="h-4 w-4 text-red-500" />
+                        <XCircle className="h-4 w-4 text-down" />
                       )}
                       <Badge variant={log.up ? "default" : getLogLabel(log) === "INCONCLUSIVE" ? "secondary" : "destructive"} className="text-xs">
                         {getLogLabel(log)}

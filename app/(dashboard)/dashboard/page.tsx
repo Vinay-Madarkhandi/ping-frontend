@@ -6,7 +6,6 @@ import {
   Clock,
   Server,
   CheckCircle2,
-  XCircle,
 } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,11 +19,13 @@ import {
   getMonitorDisplayState,
   MonitorStateBadge,
 } from "@/components/shared/monitor-state-badge";
+import { StatusDot } from "@/components/shared/status-dot";
 import { NewMonitorCta } from "@/components/shared/new-monitor-cta";
 import { QuotaBanner } from "@/components/shared/quota-banner";
 import { UsageMeter } from "@/components/shared/usage-meter";
 import { EmailVerificationBanner } from "@/components/shared/email-verification-banner";
 import { createPlanContext } from "@/lib/plans";
+import { cn } from "@/lib/utils";
 import { StatusDistributionChart } from "./status-distribution-chart";
 
 function StatsCard({
@@ -41,16 +42,20 @@ function StatsCard({
   trend?: "up" | "down";
 }) {
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2 sm:p-6 sm:pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <Icon className="h-4 w-4 text-muted-foreground" />
+    <Card className="gap-3 transition-shadow hover:shadow-md">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-0 sm:p-6 sm:pb-0">
+        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+          <Icon className="h-4 w-4 text-primary" />
+        </div>
       </CardHeader>
       <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
-        <div className="text-2xl font-bold">{value}</div>
+        <div className="font-mono text-2xl font-semibold tabular-nums" data-metric>
+          {value}
+        </div>
         <p className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground">
-          {trend === "up" && <ArrowUpRight className="h-3 w-3 text-green-500" />}
-          {trend === "down" && <ArrowDownRight className="h-3 w-3 text-red-500" />}
+          {trend === "up" && <ArrowUpRight className="h-3 w-3 text-up" />}
+          {trend === "down" && <ArrowDownRight className="h-3 w-3 text-down" />}
           {description}
         </p>
       </CardContent>
@@ -60,35 +65,32 @@ function StatsCard({
 
 function MonitorCard({ monitor }: { monitor: Monitor }) {
   const uptimeColor = monitor.uptimePercentage >= 99
-    ? "text-green-500"
+    ? "text-up"
     : monitor.uptimePercentage >= 95
-    ? "text-yellow-500"
-    : "text-red-500";
+    ? "text-suspect"
+    : "text-down";
 
   const displayState = getMonitorDisplayState(monitor);
 
   return (
     <Link href={`/monitors/${monitor.id}`}>
-      <Card className="cursor-pointer transition-colors hover:bg-muted/50">
-        <CardContent className="p-4">
+      <Card className="cursor-pointer gap-0 py-4 transition-all hover:-translate-y-0.5 hover:shadow-md">
+        <CardContent className="px-4">
           <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-3">
               <div
-                className={`p-2 rounded-full ${
-                  displayState === "DOWN"
-                    ? "bg-red-500/10"
+                className={cn(
+                  "flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
+                  displayState === "DOWN" || displayState === "QUOTA_EXCEEDED"
+                    ? "bg-down/10"
                     : displayState === "SUSPECT"
-                    ? "bg-amber-500/10"
+                    ? "bg-suspect/10"
                     : monitor.active
-                    ? "bg-green-500/10"
-                    : "bg-gray-500/10"
-                }`}
-              >
-                {monitor.active ? (
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
-                ) : (
-                  <XCircle className="h-4 w-4 text-gray-500" />
+                    ? "bg-up/10"
+                    : "bg-paused/10"
                 )}
+              >
+                <StatusDot state={monitor.active ? displayState : "INACTIVE"} className="h-2.5 w-2.5" />
               </div>
               <div className="min-w-0">
                 <h3 className="truncate font-medium">{monitor.name}</h3>
@@ -99,7 +101,7 @@ function MonitorCard({ monitor }: { monitor: Monitor }) {
             </div>
             <div className="flex flex-row items-center justify-between gap-2 sm:flex-col sm:items-end">
               <MonitorStateBadge state={displayState} active={monitor.active || displayState === "PAUSED"} />
-              <span className={`text-xs font-medium ${uptimeColor}`}>
+              <span className={cn("font-mono text-xs font-medium tabular-nums", uptimeColor)} data-metric>
                 {monitor.uptimePercentage.toFixed(1)}% uptime
               </span>
             </div>
@@ -114,7 +116,9 @@ function EmptyState({ planContext }: { planContext: PlanContext }) {
   return (
     <Card className="border-dashed">
       <CardContent className="flex flex-col items-center justify-center py-12">
-        <Server className="h-12 w-12 text-muted-foreground mb-4" />
+        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
+          <Server className="h-6 w-6 text-primary" />
+        </div>
         <h3 className="text-lg font-semibold mb-2">No monitors yet</h3>
         <p className="text-muted-foreground text-center mb-4 max-w-sm">
           Create your first monitor to start tracking the health of your servers and

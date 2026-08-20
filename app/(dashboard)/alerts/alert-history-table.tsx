@@ -56,7 +56,7 @@ function AlertTypeBadge({ alertType }: { alertType: AlertDelivery["alertType"] }
     );
   }
   return (
-    <Badge variant="outline" className="gap-1 border-green-600 text-green-600">
+    <Badge variant="outline" className="gap-1 border-up/40 text-up">
       <CheckCircle2 className="h-3 w-3" />
       Recovery
     </Badge>

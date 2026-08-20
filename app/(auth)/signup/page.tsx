@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Loader2, Activity } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -68,20 +68,14 @@ export default function SignupPage() {
   }
 
   return (
-    <Card className="w-full">
-      <CardHeader className="space-y-1 text-center p-4 sm:p-6">
-        <div className="flex justify-center mb-2">
-          <div className="flex items-center gap-2 text-primary">
-            <Activity className="h-6 w-6 sm:h-8 sm:w-8" />
-            <span className="text-xl sm:text-2xl font-bold">Ping</span>
-          </div>
-        </div>
-        <CardTitle className="text-xl sm:text-2xl">Create an account</CardTitle>
+    <Card className="w-full border-none bg-transparent shadow-none sm:border sm:bg-card sm:shadow-sm">
+      <CardHeader className="space-y-1.5 p-0 pb-6 text-center sm:p-6">
+        <CardTitle className="text-2xl sm:text-3xl">Create your account</CardTitle>
         <CardDescription className="text-sm">
-          Enter your details below to create your account
+          Start monitoring your servers and services in minutes.
         </CardDescription>
       </CardHeader>
-      <CardContent className="p-4 sm:p-6 pt-0">
+      <CardContent className="p-0 sm:p-6 sm:pt-0">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField

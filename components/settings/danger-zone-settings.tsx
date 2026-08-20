@@ -29,7 +29,7 @@ export function DangerZoneSettings() {
     try {
       await deleteAccountAction();
       // User will be redirected to signup page by the action
-    } catch (error) {
+    } catch {
       setIsDeleting(false);
       setIsOpen(false);
       toast.error("Failed to delete account", {

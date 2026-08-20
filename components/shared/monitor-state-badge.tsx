@@ -11,14 +11,15 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Monitor, MonitorDisplayState } from "@/lib/types";
+import { StatusDot } from "@/components/shared/status-dot";
 
 const stateStyles: Record<MonitorDisplayState, string> = {
-  UP: "border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-400",
-  SUSPECT: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400",
-  DOWN: "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-400",
-  PAUSED: "border-slate-500/30 bg-slate-500/10 text-slate-700 dark:text-slate-300",
-  QUOTA_EXCEEDED: "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-400",
-  UNKNOWN: "border-slate-500/30 bg-slate-500/10 text-slate-700 dark:text-slate-300",
+  UP: "border-up/30 bg-up/10 text-up-foreground dark:text-up",
+  SUSPECT: "border-suspect/40 bg-suspect/10 text-suspect-foreground dark:text-suspect",
+  DOWN: "border-down/30 bg-down/10 text-down dark:text-down",
+  PAUSED: "border-paused/30 bg-paused/10 text-paused-foreground dark:text-paused",
+  QUOTA_EXCEEDED: "border-down/30 bg-down/10 text-down dark:text-down",
+  UNKNOWN: "border-paused/30 bg-paused/10 text-paused-foreground dark:text-paused",
 };
 
 const stateIcons = {
@@ -45,17 +46,19 @@ export function getMonitorDisplayState(monitor: Monitor): MonitorDisplayState | 
 export function MonitorStateBadge({
   state,
   active = true,
+  showDot = true,
   className,
 }: {
   state: MonitorDisplayState | "INACTIVE";
   active?: boolean;
+  showDot?: boolean;
   className?: string;
 }) {
   if (state === "INACTIVE" || !active) {
     return (
       <Badge
         variant="outline"
-        className={cn("gap-1.5 border-slate-500/30 bg-slate-500/10 text-slate-700 dark:text-slate-300", className)}
+        className={cn("gap-1.5 border-paused/30 bg-paused/10 text-paused-foreground dark:text-paused", className)}
       >
         <PowerOff className="h-3 w-3" />
         Inactive
@@ -67,8 +70,8 @@ export function MonitorStateBadge({
 
   return (
     <Badge variant="outline" className={cn("gap-1.5", stateStyles[state], className)}>
-      <Icon className="h-3 w-3" />
-      {state === "QUOTA_EXCEEDED" ? "Quota reached" : state}
+      {showDot ? <StatusDot state={state} className="mr-0.5" /> : <Icon className="h-3 w-3" />}
+      {state === "QUOTA_EXCEEDED" ? "Quota reached" : state.charAt(0) + state.slice(1).toLowerCase()}
     </Badge>
   );
 }

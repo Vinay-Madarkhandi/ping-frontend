@@ -58,11 +58,18 @@ export function DetailInsights({
   selectedWindow,
 }: DetailInsightsProps) {
   const upSeconds = Math.max((uptime?.monitoredSeconds ?? 0) - (uptime?.downSeconds ?? 0), 0);
+  const breakdownTotalSeconds =
+    upSeconds + (uptime?.downSeconds ?? 0) + (uptime?.pausedSeconds ?? 0) + (uptime?.gapSeconds ?? 0);
+  // Recharts' Pie mis-computes sector sweep angles when slice values are large, unnormalized
+  // integers (raw seconds, often in the tens of thousands); passing a 0-100 share instead keeps
+  // the geometry numerically stable while `value` (raw seconds) still drives the tooltip.
+  const toShare = (seconds: number) =>
+    breakdownTotalSeconds > 0 ? (seconds / breakdownTotalSeconds) * 100 : 0;
   const breakdownData = [
-    { name: "Up", value: upSeconds, fill: "#22c55e" },
-    { name: "Down", value: uptime?.downSeconds ?? 0, fill: "#ef4444" },
-    { name: "Paused", value: uptime?.pausedSeconds ?? 0, fill: "#94a3b8" },
-    { name: "Gap", value: uptime?.gapSeconds ?? 0, fill: "#f59e0b" },
+    { name: "Up", value: upSeconds, share: toShare(upSeconds), fill: "var(--up)" },
+    { name: "Down", value: uptime?.downSeconds ?? 0, share: toShare(uptime?.downSeconds ?? 0), fill: "var(--down)" },
+    { name: "Paused", value: uptime?.pausedSeconds ?? 0, share: toShare(uptime?.pausedSeconds ?? 0), fill: "var(--paused)" },
+    { name: "Gap", value: uptime?.gapSeconds ?? 0, share: toShare(uptime?.gapSeconds ?? 0), fill: "var(--suspect)" },
   ].filter((item) => item.value > 0);
 
   const responseTimeData = (logs?.content ?? [])
@@ -116,18 +123,20 @@ export function DetailInsights({
             ) : (
               <ChartContainer
                 config={{
-                  value: { label: "Seconds", color: "#22c55e" },
+                  value: { label: "Seconds", color: "var(--up)" },
                 }}
                 className="mx-auto h-[210px] w-full max-w-[300px] sm:h-[260px]"
               >
                 <PieChart>
                   <Pie
                     data={breakdownData}
-                    dataKey="value"
+                    dataKey="share"
                     nameKey="name"
                     innerRadius={45}
                     outerRadius={75}
                     paddingAngle={2}
+                    startAngle={90}
+                    endAngle={-270}
                   >
                     {breakdownData.map((entry) => (
                       <Cell key={entry.name} fill={entry.fill} />
@@ -170,7 +179,7 @@ export function DetailInsights({
             ) : (
               <ChartContainer
                 config={{
-                  responseTime: { label: "Response time", color: "#2563eb" },
+                  responseTime: { label: "Response time", color: "var(--primary)" },
                 }}
                 className="h-[220px] w-full sm:h-[260px]"
               >
@@ -182,7 +191,7 @@ export function DetailInsights({
                   <Line
                     type="monotone"
                     dataKey="responseTime"
-                    stroke="#2563eb"
+                    stroke="var(--primary)"
                     strokeWidth={2}
                     dot={(props) => {
                       const payload = props.payload as { up: boolean };
@@ -192,7 +201,7 @@ export function DetailInsights({
                           cx={props.cx}
                           cy={props.cy}
                           r={3}
-                          fill={payload.up ? "#22c55e" : "#ef4444"}
+                          fill={payload.up ? "var(--up)" : "var(--down)"}
                           stroke="none"
                         />
                       );
@@ -222,10 +231,10 @@ export function DetailInsights({
                   title={`${log.up ? "Up" : log.statusCode === 0 ? "No response" : "Down"} at ${formatBackendDateTime(log.checkedAt)}`}
                   className={`h-6 rounded-sm sm:h-8 ${
                     log.up
-                      ? "bg-green-500"
+                      ? "bg-up"
                       : log.statusCode === 0
-                      ? "bg-slate-400"
-                      : "bg-red-500"
+                      ? "bg-paused"
+                      : "bg-down"
                   }`}
                 />
               ))}

@@ -32,13 +32,13 @@ export function AnalyticsCharts({ monitors }: AnalyticsChartsProps) {
     return acc;
   }, {});
   const statusColors: Record<string, string> = {
-    UP: "#22c55e",
-    SUSPECT: "#f59e0b",
-    DOWN: "#ef4444",
-    PAUSED: "#94a3b8",
-    QUOTA_EXCEEDED: "#dc2626",
-    UNKNOWN: "#64748b",
-    INACTIVE: "#475569",
+    UP: "var(--up)",
+    SUSPECT: "var(--suspect)",
+    DOWN: "var(--down)",
+    PAUSED: "var(--paused)",
+    QUOTA_EXCEEDED: "var(--down)",
+    UNKNOWN: "var(--paused)",
+    INACTIVE: "var(--paused)",
   };
   const statusData = Object.entries(statusCounts)
     .map(([name, value]) => ({ name, value, fill: statusColors[name] }))
@@ -75,11 +75,10 @@ export function AnalyticsCharts({ monitors }: AnalyticsChartsProps) {
   // Monitor uptime percentage bar chart data
   const monitorsBarData = monitors.slice(0, 10).map((monitor) => {
     const uptime = monitor.uptimePercentage || 0;
-    // Color based on uptime: green (>=99%), yellow (>=95%), orange (>=90%), red (<90%)
-    let color = "#22c55e"; // green
-    if (uptime < 90) color = "#ef4444"; // red
-    else if (uptime < 95) color = "#f59e0b"; // orange/amber
-    else if (uptime < 99) color = "#eab308"; // yellow
+    // Color based on uptime: up (>=99%), suspect (>=90%), down (<90%)
+    let color = "var(--up)";
+    if (uptime < 90) color = "var(--down)";
+    else if (uptime < 99) color = "var(--suspect)";
 
     return {
       name: monitor.name.length > 12 ? monitor.name.slice(0, 12) + "..." : monitor.name,
@@ -102,8 +101,8 @@ export function AnalyticsCharts({ monitors }: AnalyticsChartsProps) {
         <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
           <ChartContainer
             config={{
-              active: { label: "Active", color: "#22c55e" },
-              paused: { label: "Paused", color: "#94a3b8" },
+              active: { label: "Active", color: "var(--up)" },
+              paused: { label: "Paused", color: "var(--paused)" },
             }}
             className="mx-auto h-[210px] w-full max-w-[300px] sm:h-[280px]"
           >
@@ -115,6 +114,8 @@ export function AnalyticsCharts({ monitors }: AnalyticsChartsProps) {
                 innerRadius={45}
                 outerRadius={75}
                 paddingAngle={2}
+                startAngle={90}
+                endAngle={-270}
                 dataKey="value"
               >
                 {statusData.map((entry, index) => (
@@ -145,7 +146,7 @@ export function AnalyticsCharts({ monitors }: AnalyticsChartsProps) {
         <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
           <ChartContainer
             config={{
-              count: { label: "Monitors", color: "#3b82f6" },
+              count: { label: "Monitors", color: "var(--primary)" },
             }}
             className="h-[220px] w-full sm:h-[280px]"
           >
@@ -153,7 +154,7 @@ export function AnalyticsCharts({ monitors }: AnalyticsChartsProps) {
               <XAxis dataKey="date" tick={{ fontSize: 11 }} interval="preserveStartEnd" minTickGap={6} />
               <YAxis allowDecimals={false} tick={{ fontSize: 11 }} width={30} />
               <ChartTooltip content={<ChartTooltipContent />} />
-              <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="count" fill="var(--primary)" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ChartContainer>
         </CardContent>
@@ -175,9 +176,9 @@ export function AnalyticsCharts({ monitors }: AnalyticsChartsProps) {
                   <span className="min-w-0 truncate font-medium">{monitor.fullName}</span>
                   <span className="shrink-0 text-muted-foreground">{monitor.uptime.toFixed(1)}%</span>
                 </div>
-                <div className="h-2 rounded-full bg-red-500/20">
+                <div className="h-2 rounded-full bg-down/20">
                   <div
-                    className="h-2 rounded-full bg-green-500"
+                    className="h-2 rounded-full bg-up"
                     style={{ width: `${Math.min(Math.max(monitor.uptime, 0), 100)}%` }}
                   />
                 </div>
@@ -186,8 +187,8 @@ export function AnalyticsCharts({ monitors }: AnalyticsChartsProps) {
           </div>
           <ChartContainer
             config={{
-              uptime: { label: "Uptime", color: "#22c55e" },
-              downtime: { label: "Downtime", color: "#ef4444" },
+              uptime: { label: "Uptime", color: "var(--up)" },
+              downtime: { label: "Downtime", color: "var(--down)" },
             }}
             className="hidden h-[300px] w-full sm:block"
           >
@@ -212,10 +213,10 @@ export function AnalyticsCharts({ monitors }: AnalyticsChartsProps) {
                       <div className="rounded-lg border bg-background p-2 text-xs shadow-lg sm:p-3 sm:text-sm">
                         <p className="font-medium">{data.fullName}</p>
                         <div className="mt-1 space-y-0.5 sm:mt-2 sm:space-y-1">
-                          <p className="text-green-500">
+                          <p className="text-up">
                             Uptime: {data.uptime.toFixed(2)}%
                           </p>
-                          <p className="text-red-500">
+                          <p className="text-down">
                             Downtime: {data.downtime.toFixed(2)}%
                           </p>
                           <p className="text-muted-foreground">
@@ -228,8 +229,8 @@ export function AnalyticsCharts({ monitors }: AnalyticsChartsProps) {
                   return null;
                 }}
               />
-              <Bar dataKey="uptime" stackId="a" fill="#22c55e" radius={[0, 0, 0, 0]} name="Uptime" />
-              <Bar dataKey="downtime" stackId="a" fill="#ef4444" radius={[0, 4, 4, 0]} name="Downtime" />
+              <Bar dataKey="uptime" stackId="a" fill="var(--up)" radius={[0, 0, 0, 0]} name="Uptime" />
+              <Bar dataKey="downtime" stackId="a" fill="var(--down)" radius={[0, 4, 4, 0]} name="Downtime" />
             </BarChart>
           </ChartContainer>
         </CardContent>

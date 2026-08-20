@@ -115,6 +115,9 @@ export function UpgradeButton({
         throw new Error("Razorpay Checkout did not initialize");
       }
 
+      const brandColor =
+        getComputedStyle(document.documentElement).getPropertyValue("--primary").trim() || "#0d9488";
+
       const checkout = new window.Razorpay({
         key: order.keyId,
         amount: order.amount,
@@ -123,7 +126,7 @@ export function UpgradeButton({
         name: "Ping",
         description: "PRO plan",
         prefill,
-        theme: { color: "#0f172a" },
+        theme: { color: brandColor },
         handler: async (response) => {
           const verifyingToast = toast.loading("Confirming your payment...");
           setState("verifying");
