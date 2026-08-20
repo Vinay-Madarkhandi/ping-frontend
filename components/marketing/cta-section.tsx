@@ -3,10 +3,14 @@ import { ArrowRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { SonarPulse } from "@/components/shared/logo";
+import { ShaderAnimation } from "@/components/ui/shader-animation";
 
 export function CtaSection() {
   return (
     <section className="relative overflow-hidden border-y bg-sidebar">
+      <div className="absolute inset-0 opacity-25 [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]">
+        <ShaderAnimation />
+      </div>
       <div className="bg-grid-fade absolute inset-0" />
       <div className="relative mx-auto flex max-w-4xl flex-col items-center gap-6 px-4 py-20 text-center sm:px-6 sm:py-28">
         <SonarPulse className="h-20 w-20" />
