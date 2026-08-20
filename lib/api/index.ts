@@ -4,3 +4,4 @@ export * from "./monitors";
 export * from "./plans";
 export * from "./usage";
 export * from "./status-pages";
+export * from "./alert-channels";

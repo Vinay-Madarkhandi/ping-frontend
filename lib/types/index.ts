@@ -242,6 +242,29 @@ export interface PublicStatusPage {
   updatedAt: string;
 }
 
+// Alert Channel Types
+export type AlertChannelType = "WEBHOOK" | "SLACK" | "DISCORD";
+
+export interface AlertChannel {
+  id: string;
+  type: AlertChannelType;
+  name: string;
+  targetUrl: string;
+  active: boolean;
+  createdAt: string;
+}
+
+export interface AlertChannelRequest {
+  type: AlertChannelType;
+  name: string;
+  targetUrl: string;
+}
+
+export interface AlertChannelTestResult {
+  success: boolean;
+  message: string;
+}
+
 // API Error Types
 export interface ApiError {
   message: string;

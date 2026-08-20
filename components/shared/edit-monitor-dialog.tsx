@@ -34,10 +34,12 @@ import {
 } from "@/components/ui/select";
 
 import { editMonitorAction } from "@/lib/actions/monitors";
+import { setMonitorAlertChannelsAction } from "@/lib/actions/alert-channels";
 import { formatMilliseconds } from "@/lib/plans";
-import { Monitor, PlanContext } from "@/lib/types";
+import { AlertChannel, Monitor, PlanContext } from "@/lib/types";
 import { editMonitorSchema, EditMonitorInput } from "@/lib/validations";
 import { TagsInput } from "@/components/shared/tags-input";
+import { cn } from "@/lib/utils";
 
 const intervalOptions = [
   { value: 10000, label: "10 seconds" },
@@ -60,6 +62,8 @@ const timeoutOptions = [
 interface EditMonitorDialogProps {
   monitor: Monitor;
   planContext: PlanContext;
+  alertChannels?: AlertChannel[];
+  selectedChannelIds?: string[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
@@ -68,6 +72,8 @@ interface EditMonitorDialogProps {
 export function EditMonitorDialog({
   monitor,
   planContext,
+  alertChannels = [],
+  selectedChannelIds = [],
   open,
   onOpenChange,
   onSuccess,
@@ -76,6 +82,7 @@ export function EditMonitorDialog({
   const [headers, setHeaders] = useState<Array<{ key: string; value: string }>>([
     { key: "", value: "" },
   ]);
+  const [channelIds, setChannelIds] = useState<string[]>(selectedChannelIds);
 
   const form = useForm<EditMonitorInput>({
     resolver: zodResolver(editMonitorSchema),
@@ -104,6 +111,8 @@ export function EditMonitorDialog({
       tags: monitor.tags ?? [],
     });
     setHeaders([{ key: "", value: "" }]);
+    setChannelIds(selectedChannelIds);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [monitor, form]);
 
   function validatePlanLimits(data: EditMonitorInput) {
@@ -147,9 +156,16 @@ export function EditMonitorDialog({
       const result = await editMonitorAction(monitor.id, payload);
 
       if (result.success) {
-        toast.success("Monitor updated", {
-          description: `${data.name} has been updated successfully.`,
-        });
+        const channelsResult = await setMonitorAlertChannelsAction(monitor.id, channelIds);
+        if (!channelsResult.success) {
+          toast.error("Monitor saved, but alert channels failed to update", {
+            description: channelsResult.error,
+          });
+        } else {
+          toast.success("Monitor updated", {
+            description: `${data.name} has been updated successfully.`,
+          });
+        }
         onOpenChange(false);
         onSuccess?.();
       } else if (result.status === 403) {
@@ -168,6 +184,12 @@ export function EditMonitorDialog({
     } finally {
       setIsLoading(false);
     }
+  }
+
+  function toggleChannel(id: string) {
+    setChannelIds((current) =>
+      current.includes(id) ? current.filter((c) => c !== id) : [...current, id]
+    );
   }
 
   return (
@@ -229,6 +251,41 @@ export function EditMonitorDialog({
                 </FormItem>
               )}
             />
+
+            {alertChannels.length > 0 ? (
+              <div className="space-y-2">
+                <FormLabel>Alert channels</FormLabel>
+                <FormDescription>
+                  Sent alongside email on DOWN/RECOVERY. Manage channels in Settings.
+                </FormDescription>
+                <div className="max-h-40 space-y-1 overflow-y-auto rounded-md border p-2">
+                  {alertChannels.map((channel) => {
+                    const checked = channelIds.includes(channel.id);
+                    return (
+                      <label
+                        key={channel.id}
+                        className={cn(
+                          "flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-sm hover:bg-muted/60",
+                          checked && "bg-accent"
+                        )}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          disabled={isLoading}
+                          onChange={() => toggleChannel(channel.id)}
+                          className="h-4 w-4 rounded border-input"
+                        />
+                        <span className="min-w-0 flex-1 truncate">{channel.name}</span>
+                        <Badge variant="outline" className="shrink-0 text-[10px]">
+                          {channel.type}
+                        </Badge>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : null}
 
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField

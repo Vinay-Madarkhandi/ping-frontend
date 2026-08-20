@@ -128,6 +128,24 @@ export const statusPageSchema = z.object({
   monitorIds: z.array(z.string()).min(1, "Select at least one monitor"),
 });
 
+// Alert channel schema
+export const alertChannelSchema = z.object({
+  type: z.enum(["WEBHOOK", "SLACK", "DISCORD"], {
+    message: "Please select a channel type",
+  }),
+  name: z
+    .string()
+    .min(1, "Name is required")
+    .max(100, "Name must be at most 100 characters"),
+  targetUrl: z
+    .string()
+    .url("Please enter a valid URL")
+    .refine(
+      (url) => url.startsWith("https://") || url.startsWith("http://"),
+      "URL must start with http:// or https://"
+    ),
+});
+
 // Type exports
 export type SignupInput = z.infer<typeof signupSchema>;
 export type SigninInput = z.infer<typeof signinSchema>;
@@ -137,3 +155,4 @@ export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export type CreateMonitorInput = z.infer<typeof createMonitorSchema>;
 export type EditMonitorInput = z.infer<typeof editMonitorSchema>;
 export type StatusPageInput = z.infer<typeof statusPageSchema>;
+export type AlertChannelInput = z.infer<typeof alertChannelSchema>;

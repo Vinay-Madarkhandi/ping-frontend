@@ -14,6 +14,7 @@ import {
   getMonitors,
 } from "@/lib/api/monitors";
 import { getCurrentUser } from "@/lib/api/auth";
+import { getAlertChannels, getMonitorAlertChannels } from "@/lib/api/alert-channels";
 import { createPlanContext } from "@/lib/plans";
 import { StatusCards } from "./status-cards";
 import { LogsTable } from "./logs-table";
@@ -59,13 +60,24 @@ export default async function MonitorDetailPage({
   const monitor = monitorResult.data;
 
   // Fetch detail data and plan context in parallel
-  const [statusResult, logsResult, uptimeResult, incidentsResult, userResult, monitorsResult] = await Promise.all([
+  const [
+    statusResult,
+    logsResult,
+    uptimeResult,
+    incidentsResult,
+    userResult,
+    monitorsResult,
+    alertChannelsResult,
+    monitorChannelIdsResult,
+  ] = await Promise.all([
     getMonitorStatus(monitorId),
     getMonitorLogs(monitorId, currentPage, 20),
     getMonitorUptime(monitorId, selectedWindow),
     getMonitorIncidents(monitorId, 0, 10),
     getCurrentUser(),
     getMonitors(),
+    getAlertChannels(),
+    getMonitorAlertChannels(monitorId),
   ]);
 
   const status = statusResult.data;
@@ -125,7 +137,13 @@ export default async function MonitorDetailPage({
                 </div>
               ) : null}
             </div>
-            <MonitorActions monitor={monitor} status={status} planContext={planContext} />
+            <MonitorActions
+              monitor={monitor}
+              status={status}
+              planContext={planContext}
+              alertChannels={alertChannelsResult.data ?? []}
+              selectedChannelIds={monitorChannelIdsResult.data ?? []}
+            />
           </div>
         </div>
       </div>

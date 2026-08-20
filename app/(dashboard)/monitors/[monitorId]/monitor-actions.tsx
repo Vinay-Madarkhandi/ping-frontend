@@ -6,7 +6,7 @@ import { Pause, Play, Edit, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { Monitor, MonitorStatus, PlanContext } from "@/lib/types";
+import { AlertChannel, Monitor, MonitorStatus, PlanContext } from "@/lib/types";
 import {
   pauseMonitorAction,
   resumeMonitorAction,
@@ -18,9 +18,17 @@ interface MonitorActionsProps {
   monitor: Monitor;
   status?: MonitorStatus;
   planContext: PlanContext;
+  alertChannels: AlertChannel[];
+  selectedChannelIds: string[];
 }
 
-export function MonitorActions({ monitor, status, planContext }: MonitorActionsProps) {
+export function MonitorActions({
+  monitor,
+  status,
+  planContext,
+  alertChannels,
+  selectedChannelIds,
+}: MonitorActionsProps) {
   const router = useRouter();
   const [isPending, setIsPending] = useState(false);
   const [isCheckingNow, setIsCheckingNow] = useState(false);
@@ -153,6 +161,8 @@ export function MonitorActions({ monitor, status, planContext }: MonitorActionsP
       <EditMonitorDialog
         monitor={monitor}
         planContext={planContext}
+        alertChannels={alertChannels}
+        selectedChannelIds={selectedChannelIds}
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
         onSuccess={() => router.refresh()}
