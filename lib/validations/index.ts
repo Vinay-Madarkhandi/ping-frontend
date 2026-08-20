@@ -19,6 +19,28 @@ export const signinSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 
+// Password change schema
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, "Current password is required"),
+  newPassword: z
+    .string()
+    .min(6, "New password must be at least 6 characters")
+    .max(100, "New password must be at most 100 characters"),
+});
+
+// Forgot password schema
+export const forgotPasswordSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+});
+
+// Reset password schema
+export const resetPasswordSchema = z.object({
+  newPassword: z
+    .string()
+    .min(6, "Password must be at least 6 characters")
+    .max(100, "Password must be at most 100 characters"),
+});
+
 // Monitor Schemas
 export const createMonitorSchema = z.object({
   name: z
@@ -54,7 +76,46 @@ export const createMonitorSchema = z.object({
   customHeaders: z.record(z.string(), z.string()).optional(),
 });
 
+export const editMonitorSchema = z.object({
+  name: z
+    .string()
+    .min(1, "Name is required")
+    .max(100, "Name must be at most 100 characters"),
+  url: z
+    .string()
+    .url("Please enter a valid URL")
+    .refine(
+      (url) => url.startsWith("http://") || url.startsWith("https://"),
+      "URL must start with http:// or https://"
+    ),
+  intervalMilliseconds: z
+    .number()
+    .positive("Interval must be greater than 0")
+    .max(86400000, "Interval must be at most 24 hours"),
+  timeoutMilliseconds: z
+    .number()
+    .positive("Timeout must be greater than 0")
+    .max(60000, "Timeout must be at most 60 seconds"),
+  monitorMethod: z.enum(["GET", "POST"], {
+    message: "Please select a valid HTTP method",
+  }),
+  expectedStatusCode: z
+    .number()
+    .int("Expected status code must be a whole number")
+    .min(100, "Expected status code must be at least 100")
+    .max(599, "Expected status code must be at most 599")
+    .optional(),
+  keyword: z.string().max(500, "Keyword must be at most 500 characters").optional(),
+  followRedirects: z.boolean().optional(),
+  customHeaders: z.record(z.string(), z.string()).optional(),
+  active: z.boolean().optional(),
+});
+
 // Type exports
 export type SignupInput = z.infer<typeof signupSchema>;
 export type SigninInput = z.infer<typeof signinSchema>;
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export type CreateMonitorInput = z.infer<typeof createMonitorSchema>;
+export type EditMonitorInput = z.infer<typeof editMonitorSchema>;

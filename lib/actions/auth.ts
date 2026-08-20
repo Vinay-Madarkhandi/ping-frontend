@@ -1,116 +1,75 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { signupUser, signinUser } from "@/lib/api/auth";
-import { signupSchema, signinSchema, SignupInput, SigninInput } from "@/lib/validations";
-import { ActionResult, SignupResponse } from "@/lib/types";
+import {
+  changePassword,
+  forgotPassword,
+  resetPassword,
+  verifyEmail,
+  resendVerification,
+  logout,
+  deleteAccount,
+} from "@/lib/api/auth";
+import { ActionResult } from "@/lib/types";
 
 /**
- * Server Action: Register a new user
+ * Server Action: Sign up a new user
  */
-export async function signupAction(
-  formData: SignupInput
-): Promise<ActionResult<SignupResponse>> {
-  // Server-side validation
-  const validationResult = signupSchema.safeParse(formData);
+export async function signupAction(formData: {
+  username: string;
+  email: string;
+  password: string;
+}): Promise<ActionResult> {
+  try {
+    const backendUrl = process.env.BACKEND_API_URL || "http://localhost:8080";
+    const response = await fetch(`${backendUrl}/api/v1/auth/signup/user`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
+      }),
+    });
 
-  if (!validationResult.success) {
-    return {
-      success: false,
-      error: validationResult.error.issues[0]?.message || "Invalid input",
-    };
-  }
-
-  const { data, error } = await signupUser(validationResult.data);
-
-  if (error) {
-    return {
-      success: false,
-      error: error.message,
-    };
-  }
-
-  return {
-    success: true,
-    data,
-  };
-}
-
-/**
- * Server Action: Sign in user
- */
-export async function signinAction(
-  formData: SigninInput
-): Promise<ActionResult> {
-  // Server-side validation
-  const validationResult = signinSchema.safeParse(formData);
-
-  if (!validationResult.success) {
-    return {
-      success: false,
-      error: validationResult.error.issues[0]?.message || "Invalid input",
-    };
-  }
-
-  const { data, error, setCookies } = await signinUser(validationResult.data);
-
-  if (error) {
-    return {
-      success: false,
-      error: error.message,
-    };
-  }
-
-  if (!data?.success) {
-    return {
-      success: false,
-      error: "Invalid credentials",
-    };
-  }
-
-  // Set cookies from backend response
-  const cookieStore = await cookies();
-
-  if (setCookies && setCookies.length > 0) {
-    for (const setCookie of setCookies) {
-      // Parse the Set-Cookie header
-      const [cookiePart, ...optionsParts] = setCookie.split(";");
-      const [name, ...valueParts] = cookiePart.split("=");
-      const value = valueParts.join("="); // Handle values that contain '='
-
-      if (name && value) {
-        const options: {
-          httpOnly?: boolean;
-          secure?: boolean;
-          sameSite?: "strict" | "lax" | "none";
-          path?: string;
-          maxAge?: number;
-        } = {
-          path: "/", // Default path
-          httpOnly: true, // Always set httpOnly for security
-          sameSite: "lax", // Default sameSite
-        };
-
-        for (const option of optionsParts) {
-          const [key, val] = option.trim().split("=");
-          const keyLower = key.toLowerCase();
-          if (keyLower === "httponly") options.httpOnly = true;
-          if (keyLower === "secure") options.secure = true;
-          if (keyLower === "samesite") {
-            options.sameSite = val?.toLowerCase() as "strict" | "lax" | "none";
-          }
-          if (keyLower === "path") options.path = val;
-          if (keyLower === "max-age") options.maxAge = parseInt(val || "0", 10);
-        }
-
-        try {
-          cookieStore.set(name.trim(), value.trim(), options);
-        } catch (err) {
-          console.error(`Failed to set cookie ${name.trim()}:`, err);
-        }
-      }
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      return {
+        success: false,
+        error: errorData.message || "Signup failed",
+        status: response.status,
+      };
     }
+
+    return {
+      success: true,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Network error",
+    };
+  }
+}
+
+/**
+ * Server Action: Change password
+ */
+export async function changePasswordAction(
+  currentPassword: string,
+  newPassword: string
+): Promise<ActionResult> {
+  const { error } = await changePassword(currentPassword, newPassword);
+
+  if (error) {
+    return {
+      success: false,
+      error: error.message,
+      status: error.status,
+    };
   }
 
   return {
@@ -119,12 +78,98 @@ export async function signinAction(
 }
 
 /**
- * Server Action: Sign out user
+ * Server Action: Request password reset
  */
-export async function signoutAction(): Promise<void> {
-  const cookieStore = await cookies();
+export async function forgotPasswordAction(email: string): Promise<ActionResult> {
+  const { error } = await forgotPassword(email);
 
-  cookieStore.delete("JwtToken");
+  if (error) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
 
+  return {
+    success: true,
+  };
+}
+
+/**
+ * Server Action: Reset password with token
+ */
+export async function resetPasswordAction(
+  token: string,
+  newPassword: string
+): Promise<ActionResult> {
+  const { error } = await resetPassword(token, newPassword);
+
+  if (error) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+
+  return {
+    success: true,
+  };
+}
+
+/**
+ * Server Action: Verify email
+ */
+export async function verifyEmailAction(token: string): Promise<ActionResult> {
+  const { error } = await verifyEmail(token);
+
+  if (error) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+
+  revalidatePath("/");
+  return {
+    success: true,
+  };
+}
+
+/**
+ * Server Action: Resend verification email
+ */
+export async function resendVerificationAction(): Promise<ActionResult> {
+  const { error } = await resendVerification();
+
+  if (error) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+
+  return {
+    success: true,
+  };
+}
+
+/**
+ * Server Action: Logout
+ */
+export async function logoutAction(): Promise<void> {
+  await logout();
   redirect("/signin");
 }
+
+/**
+ * Server Action: Delete account
+ */
+export async function deleteAccountAction(): Promise<void> {
+  await deleteAccount();
+  redirect("/signup");
+}
+
+/**
+ * Alias for logoutAction for backwards compatibility
+ */
+export const signoutAction = logoutAction;

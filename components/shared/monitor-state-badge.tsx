@@ -30,11 +30,16 @@ const stateIcons = {
   UNKNOWN: CircleHelp,
 };
 
+/**
+ * Resolves what to show for a monitor. Precedence mirrors the backend's own derivation, with the
+ * client-only INACTIVE state layered on: a toggled-off monitor still reports a health state from the
+ * server, but the user cares that it is switched off.
+ */
 export function getMonitorDisplayState(monitor: Monitor): MonitorDisplayState | "INACTIVE" {
   if (monitor.quotaBlocked) return "QUOTA_EXCEEDED";
-  if (monitor.displayState) return monitor.displayState;
   if (monitor.paused) return "PAUSED";
-  return monitor.active ? "UNKNOWN" : "INACTIVE";
+  if (!monitor.active) return "INACTIVE";
+  return monitor.displayState;
 }
 
 export function MonitorStateBadge({

@@ -1,12 +1,12 @@
 import { BarChart3 } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getMonitorsWithStatus } from "@/lib/api/monitors";
+import { getMonitors } from "@/lib/api/monitors";
 import { AnalyticsCharts } from "./analytics-charts";
 import { AutoRefresh } from "@/components/shared/auto-refresh";
 
 export default async function AnalyticsPage() {
-  const { data: monitors, error } = await getMonitorsWithStatus();
+  const { data: monitors, error } = await getMonitors();
 
   if (error) {
     return (

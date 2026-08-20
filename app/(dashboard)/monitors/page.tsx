@@ -1,7 +1,9 @@
-import { Server } from "lucide-react";
+import { Server, Archive } from "lucide-react";
+import Link from "next/link";
 
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { getMonitorsWithStatus } from "@/lib/api/monitors";
+import { getMonitors } from "@/lib/api/monitors";
 import { getCurrentUser } from "@/lib/api/auth";
 import { getUsage } from "@/lib/api/usage";
 import { PlanContext } from "@/lib/types";
@@ -30,7 +32,7 @@ function EmptyState({ planContext }: { planContext: PlanContext }) {
 
 export default async function MonitorsPage() {
   const [monitorsResult, currentUserResult, usageResult] = await Promise.all([
-    getMonitorsWithStatus(),
+    getMonitors(),
     getCurrentUser(),
     getUsage(),
   ]);
@@ -54,7 +56,15 @@ export default async function MonitorsPage() {
             Manage and view all your configured monitors
           </p>
         </div>
-        <NewMonitorCta planContext={planContext} className="w-full sm:w-auto" />
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/monitors/archived">
+              <Archive className="mr-2 h-4 w-4" />
+              Archived
+            </Link>
+          </Button>
+          <NewMonitorCta planContext={planContext} className="w-full sm:w-auto" />
+        </div>
       </div>
 
       {/* Content */}

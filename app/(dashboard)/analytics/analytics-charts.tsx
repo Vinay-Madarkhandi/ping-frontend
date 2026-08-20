@@ -67,7 +67,6 @@ export function AnalyticsCharts({ monitors }: AnalyticsChartsProps) {
     return acc;
   }, Object.fromEntries(lastSevenDays.map((day) => [day.key, 0])) as Record<string, number>);
 
-  const hasCreatedAt = monitors.some((monitor) => monitor.createdAt);
   const barChartData = lastSevenDays.map((day) => ({
     date: day.date,
     count: monitorsByDate[day.key] ?? 0,
@@ -144,25 +143,19 @@ export function AnalyticsCharts({ monitors }: AnalyticsChartsProps) {
           <CardDescription className="text-xs sm:text-sm">New monitors in the last 7 days</CardDescription>
         </CardHeader>
         <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
-          {!hasCreatedAt ? (
-            <div className="flex h-[220px] items-center justify-center text-center text-sm text-muted-foreground sm:h-[280px]">
-              Creation dates are not available from the list endpoint yet.
-            </div>
-          ) : (
-            <ChartContainer
-              config={{
-                count: { label: "Monitors", color: "#3b82f6" },
-              }}
-              className="h-[220px] w-full sm:h-[280px]"
-            >
-              <BarChart data={barChartData} margin={{ left: -16, right: 4 }}>
-                <XAxis dataKey="date" tick={{ fontSize: 11 }} interval="preserveStartEnd" minTickGap={6} />
-                <YAxis allowDecimals={false} tick={{ fontSize: 11 }} width={30} />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ChartContainer>
-          )}
+          <ChartContainer
+            config={{
+              count: { label: "Monitors", color: "#3b82f6" },
+            }}
+            className="h-[220px] w-full sm:h-[280px]"
+          >
+            <BarChart data={barChartData} margin={{ left: -16, right: 4 }}>
+              <XAxis dataKey="date" tick={{ fontSize: 11 }} interval="preserveStartEnd" minTickGap={6} />
+              <YAxis allowDecimals={false} tick={{ fontSize: 11 }} width={30} />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ChartContainer>
         </CardContent>
       </Card>
 

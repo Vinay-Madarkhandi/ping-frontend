@@ -40,6 +40,7 @@ export interface CurrentUserResponse {
   userId: string;
   email: string;
   userName: string;
+  emailVerified: boolean;
   subscriptionStatus?: "FREE" | "ACTIVE" | "EXPIRED";
   subscriptionStartAt?: string | null;
   subscriptionEndAt?: string | null;
@@ -114,11 +115,13 @@ export interface Monitor {
   method: "GET" | "POST";
   nextCheckAt: string;
   uptimePercentage: number;
-  paused?: boolean;
-  quotaBlocked?: boolean;
-  currentState?: MonitorHealthState;
-  displayState?: MonitorDisplayState;
-  createdAt?: string;
+  createdAt: string;
+  paused: boolean;
+  quotaBlocked: boolean;
+  currentState: MonitorHealthState;
+  displayState: MonitorDisplayState;
+  intervalMilliseconds: number;
+  timeoutMilliseconds: number;
 }
 
 export type MonitorHealthState = "UNKNOWN" | "UP" | "SUSPECT" | "DOWN";
@@ -154,7 +157,7 @@ export interface MonitorStatus {
   up: boolean;
   currentState: MonitorHealthState;
   displayState: MonitorDisplayState;
-  quotaBlocked?: boolean;
+  quotaBlocked: boolean;
 }
 
 export interface Incident {
@@ -176,6 +179,20 @@ export interface Uptime {
   downSeconds: number;
   pausedSeconds: number;
   gapSeconds: number;
+}
+
+export interface AlertDelivery {
+  id: string;
+  monitorId: string;
+  monitorName: string;
+  recipient: string;
+  subject: string;
+  alertType: "DOWN" | "RECOVERY";
+  status: "PENDING" | "SENT" | "FAILED";
+  attempts: number;
+  lastError?: string;
+  createdAt: string;
+  sentAt?: string;
 }
 
 // API Error Types

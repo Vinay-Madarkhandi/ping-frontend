@@ -47,12 +47,10 @@ export function LogsTable({ logs, monitorId }: LogsTableProps) {
     return "bg-red-500/10 text-red-500";
   };
 
-  const getLogLabel = (log: MonitorLog) => {
-    if (log.outcome) return log.outcome;
-    if (log.up) return "UP";
-    if (log.statusCode === 0) return "INCONCLUSIVE";
-    return "DOWN";
-  };
+  // The backend now reports the probe outcome explicitly. Only rows written before migration V11
+  // lack it, so the fallback stays minimal — and never guesses INCONCLUSIVE from statusCode 0,
+  // which would mislabel genuine connect/read timeouts (those are real DOWN events).
+  const getLogLabel = (log: MonitorLog) => log.outcome ?? (log.up ? "UP" : "DOWN");
 
   return (
     <Card>

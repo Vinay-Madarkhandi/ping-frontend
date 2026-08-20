@@ -1,6 +1,6 @@
 import "server-only";
 
-import { ApiResponse, serverFetch } from "./server-client";
+import { serverFetch } from "./server-client";
 import {
   CreateMonitorResponse,
   CreateMonitorRequest,
@@ -10,6 +10,7 @@ import {
   MonitorStatus,
   PaginatedResponse,
   Uptime,
+  AlertDelivery,
 } from "@/lib/types";
 
 /**
@@ -23,68 +24,26 @@ export async function createMonitor(data: CreateMonitorRequest) {
 }
 
 /**
- * Get all monitors for the authenticated user
+ * Get all monitors for the authenticated user.
+ *
+ * The list DTO now carries state (currentState/displayState/paused/quotaBlocked), so callers no
+ * longer need a follow-up /status request per monitor.
  */
-export async function getMonitors() {
-  return serverFetch<Monitor[]>("/api/v1/monitors", {
+export async function getMonitors(archived: boolean = false) {
+  const query = archived ? "?archived=true" : "";
+  return serverFetch<Monitor[]>(`/api/v1/monitors${query}`, {
     method: "GET",
   });
 }
 
 /**
- * Get monitors and merge per-monitor status until the list DTO exposes state.
+ * Get a single monitor by ID. Returns 403 when the monitor is not owned by the caller or archived,
+ * so a missing monitor never reveals whether it exists for someone else.
  */
-export async function getMonitorsWithStatus(): Promise<ApiResponse<Monitor[]>> {
-  const monitorsResult = await getMonitors();
-
-  if (monitorsResult.error || !monitorsResult.data) {
-    return monitorsResult;
-  }
-
-  const statusResults = await Promise.all(
-    monitorsResult.data.map((monitor) => getMonitorStatus(monitor.id))
-  );
-
-  return {
-    data: monitorsResult.data.map((monitor, index) => {
-      const status = statusResults[index].data;
-
-      if (!status) {
-        return monitor;
-      }
-
-      return {
-        ...monitor,
-        currentState: status.currentState,
-        displayState: status.displayState,
-        quotaBlocked: status.quotaBlocked || status.displayState === "QUOTA_EXCEEDED",
-        paused: status.displayState === "PAUSED",
-        uptimePercentage: monitor.uptimePercentage ?? status.uptimePercentage,
-      };
-    }),
-  };
-}
-
-/**
- * Get a single monitor by ID
- * The backend does not provide a single-monitor endpoint, so use the list.
- */
-export async function getMonitorById(monitorId: string): Promise<ApiResponse<Monitor>> {
-  const listResult = await serverFetch<Monitor[]>("/api/v1/monitors", {
+export async function getMonitorById(monitorId: string) {
+  return serverFetch<Monitor>(`/api/v1/monitors/${monitorId}`, {
     method: "GET",
   });
-
-  if (listResult.error) {
-    return { error: listResult.error };
-  }
-
-  const monitor = listResult.data?.find(m => m.id === monitorId);
-
-  if (monitor) {
-    return { data: monitor };
-  }
-
-  return { error: { message: "Monitor not found", status: 404 } };
 }
 
 /**
@@ -178,4 +137,66 @@ export async function resumeMonitor(monitorId: string) {
   return serverFetch<void>(`/api/v1/monitors/${monitorId}/resume`, {
     method: "POST",
   });
+}
+
+/**
+ * Full replacement of a monitor's configuration. Re-validates SSRF and plan limits.
+ */
+export async function editMonitor(monitorId: string, data: CreateMonitorRequest) {
+  return serverFetch<Monitor>(`/api/v1/monitors/${monitorId}`, {
+    method: "PUT",
+    body: data,
+  });
+}
+
+/**
+ * Run an immediate check and return its outcome, bypassing the scheduler.
+ */
+export async function checkMonitorNow(monitorId: string) {
+  return serverFetch<{
+    outcome: string;
+    statusCode: number;
+    responseTimeMs: number;
+    errorMessage?: string;
+    message: string;
+  }>(`/api/v1/monitors/${monitorId}/check-now`, {
+    method: "POST",
+  });
+}
+
+/**
+ * Un-archive a monitor and schedule it immediately. Counts against plan's monitor limit.
+ */
+export async function restoreMonitor(monitorId: string) {
+  return serverFetch<Monitor>(`/api/v1/monitors/${monitorId}/restore`, {
+    method: "POST",
+  });
+}
+
+/**
+ * Get alert delivery history for a specific monitor.
+ */
+export async function getMonitorAlerts(
+  monitorId: string,
+  page: number = 0,
+  size: number = 20
+) {
+  return serverFetch<PaginatedResponse<AlertDelivery>>(
+    `/api/v1/monitors/${monitorId}/alerts?page=${page}&size=${size}`,
+    {
+      method: "GET",
+    }
+  );
+}
+
+/**
+ * Get account-wide alert delivery history.
+ */
+export async function getAllAlerts(page: number = 0, size: number = 20) {
+  return serverFetch<PaginatedResponse<AlertDelivery>>(
+    `/api/v1/alerts?page=${page}&size=${size}`,
+    {
+      method: "GET",
+    }
+  );
 }

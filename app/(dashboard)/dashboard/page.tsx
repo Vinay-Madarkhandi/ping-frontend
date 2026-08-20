@@ -11,7 +11,7 @@ import {
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { getMonitorsWithStatus } from "@/lib/api/monitors";
+import { getMonitors } from "@/lib/api/monitors";
 import { getCurrentUser } from "@/lib/api/auth";
 import { getUsage } from "@/lib/api/usage";
 import { Monitor, PlanContext } from "@/lib/types";
@@ -23,6 +23,7 @@ import {
 import { NewMonitorCta } from "@/components/shared/new-monitor-cta";
 import { QuotaBanner } from "@/components/shared/quota-banner";
 import { UsageMeter } from "@/components/shared/usage-meter";
+import { EmailVerificationBanner } from "@/components/shared/email-verification-banner";
 import { createPlanContext } from "@/lib/plans";
 import { StatusDistributionChart } from "./status-distribution-chart";
 
@@ -127,7 +128,7 @@ function EmptyState({ planContext }: { planContext: PlanContext }) {
 
 export default async function DashboardPage() {
   const [monitorsResult, currentUserResult, usageResult] = await Promise.all([
-    getMonitorsWithStatus(),
+    getMonitors(),
     getCurrentUser(),
     getUsage(),
   ]);
@@ -152,6 +153,11 @@ export default async function DashboardPage() {
     <div className="space-y-4 sm:space-y-6">
       <AutoRefresh intervalMs={30000} />
       <QuotaBanner planContext={planContext} />
+      
+      {/* Email Verification Banner */}
+      {currentUserResult.data && !currentUserResult.data.emailVerified && (
+        <EmailVerificationBanner email={currentUserResult.data.email} />
+      )}
 
       {/* Page Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

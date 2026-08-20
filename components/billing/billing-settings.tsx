@@ -30,7 +30,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { UsageMeter } from "@/components/shared/usage-meter";
-import { CurrentUserResponse, PlanContext } from "@/lib/types";
+import { CurrentUserResponse, PlanContext, PlanLimits } from "@/lib/types";
 import {
   formatMilliseconds,
   formatMoney,
@@ -69,9 +69,11 @@ function PlanStatusBadge({ currentUser }: { currentUser?: CurrentUserResponse })
 export function BillingSettings({
   currentUser,
   planContext,
+  catalog,
 }: {
   currentUser?: CurrentUserResponse;
   planContext: PlanContext;
+  catalog?: PlanLimits[];
 }) {
   const plan = planContext.plan;
   const activePro = isProPlan(plan.name, currentUser?.subscriptionStatus);
@@ -79,6 +81,52 @@ export function BillingSettings({
   const planPrice = typeof plan.priceAmount === "number"
     ? formatMoney(plan.priceAmount, plan.currency)
     : null;
+
+  // PRO limits come from the catalog; when it is unavailable we say so rather than inventing numbers.
+  const pro = catalog?.find((entry) => entry.name === "PRO");
+  const unavailable = "Unavailable";
+  const comparisonRows: Array<{ label: string; current: string; pro: string }> = [
+    {
+      label: "Monitors",
+      current: formatNumber(plan.maxMonitors),
+      pro: pro ? formatNumber(pro.maxMonitors) : unavailable,
+    },
+    {
+      label: "Minimum interval",
+      current: formatMilliseconds(plan.minIntervalMs),
+      pro: pro ? formatMilliseconds(pro.minIntervalMs) : unavailable,
+    },
+    {
+      label: "Timeout",
+      current: formatMilliseconds(plan.maxTimeoutMs),
+      pro: pro ? formatMilliseconds(pro.maxTimeoutMs) : unavailable,
+    },
+    {
+      label: "Monthly checks",
+      current: formatNumber(plan.monthlyCheckQuota),
+      pro: pro ? formatNumber(pro.monthlyCheckQuota) : unavailable,
+    },
+    {
+      label: "Retention",
+      current: `${formatNumber(plan.retentionDays)} days`,
+      pro: pro ? `${formatNumber(pro.retentionDays)} days` : unavailable,
+    },
+    {
+      label: "Alerts per day",
+      current: formatNumber(plan.maxAlertsPerDay),
+      pro: pro ? formatNumber(pro.maxAlertsPerDay) : unavailable,
+    },
+    {
+      label: "Alert cooldown",
+      current: formatSeconds(plan.alertCooldownSeconds),
+      pro: pro ? formatSeconds(pro.alertCooldownSeconds) : unavailable,
+    },
+    {
+      label: "Price",
+      current: formatMoney(plan.priceAmount ?? 0, plan.currency ?? "INR"),
+      pro: pro ? formatMoney(pro.priceAmount ?? 0, pro.currency ?? "INR") : unavailable,
+    },
+  ];
 
   return (
     <div id="billing" className="scroll-mt-6 space-y-4 sm:space-y-6">
@@ -191,7 +239,8 @@ export function BillingSettings({
         <CardHeader>
           <CardTitle className="text-base">Plan Comparison</CardTitle>
           <CardDescription>
-            Current plan values are live from the backend. PRO catalog values need a plan-catalog endpoint.
+            Both columns come from the backend plan catalog, so they always match the limits actually
+            enforced on your account.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -199,36 +248,21 @@ export function BillingSettings({
             <TableHeader>
               <TableRow>
                 <TableHead>Capability</TableHead>
-                <TableHead>Current plan</TableHead>
-                <TableHead>PRO catalog</TableHead>
+                <TableHead>
+                  Current plan
+                  <span className="ml-1 text-xs font-normal text-muted-foreground">({plan.name})</span>
+                </TableHead>
+                <TableHead>PRO</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              <TableRow>
-                <TableCell>Monitors</TableCell>
-                <TableCell>{formatNumber(plan.maxMonitors)}</TableCell>
-                <TableCell className="text-muted-foreground">Pending catalog endpoint</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell>Minimum interval</TableCell>
-                <TableCell>{formatMilliseconds(plan.minIntervalMs)}</TableCell>
-                <TableCell className="text-muted-foreground">Pending catalog endpoint</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell>Timeout</TableCell>
-                <TableCell>{formatMilliseconds(plan.maxTimeoutMs)}</TableCell>
-                <TableCell className="text-muted-foreground">Pending catalog endpoint</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell>Monthly checks</TableCell>
-                <TableCell>{formatNumber(plan.monthlyCheckQuota)}</TableCell>
-                <TableCell className="text-muted-foreground">Pending catalog endpoint</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell>Retention</TableCell>
-                <TableCell>{formatNumber(plan.retentionDays)} days</TableCell>
-                <TableCell className="text-muted-foreground">Pending catalog endpoint</TableCell>
-              </TableRow>
+              {comparisonRows.map((row) => (
+                <TableRow key={row.label}>
+                  <TableCell>{row.label}</TableCell>
+                  <TableCell>{row.current}</TableCell>
+                  <TableCell className={pro ? undefined : "text-muted-foreground"}>{row.pro}</TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         </CardContent>

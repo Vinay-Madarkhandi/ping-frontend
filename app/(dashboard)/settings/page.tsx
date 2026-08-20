@@ -3,14 +3,18 @@ import { Bell, Lock, UserRound } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { BillingSettings } from "@/components/billing/billing-settings";
+import { PasswordSettings } from "@/components/settings/password-settings";
+import { DangerZoneSettings } from "@/components/settings/danger-zone-settings";
 import { getCurrentUser } from "@/lib/api/auth";
+import { getPlans } from "@/lib/api/plans";
 import { getUsage } from "@/lib/api/usage";
 import { createPlanContext } from "@/lib/plans";
 
 export default async function SettingsPage() {
-  const [currentUserResult, usageResult] = await Promise.all([
+  const [currentUserResult, usageResult, plansResult] = await Promise.all([
     getCurrentUser(),
     getUsage(),
+    getPlans(),
   ]);
   const planContext = createPlanContext({
     currentUser: currentUserResult.data,
@@ -27,7 +31,16 @@ export default async function SettingsPage() {
         </p>
       </div>
 
-      <BillingSettings currentUser={currentUserResult.data} planContext={planContext} />
+      <BillingSettings
+        currentUser={currentUserResult.data}
+        planContext={planContext}
+        catalog={plansResult.data}
+      />
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <PasswordSettings />
+        <DangerZoneSettings />
+      </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
         <Card>

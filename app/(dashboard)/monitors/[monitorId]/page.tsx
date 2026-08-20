@@ -10,7 +10,10 @@ import {
   getMonitorLogs,
   getMonitorIncidents,
   getMonitorUptime,
+  getMonitors,
 } from "@/lib/api/monitors";
+import { getCurrentUser } from "@/lib/api/auth";
+import { createPlanContext } from "@/lib/plans";
 import { StatusCards } from "./status-cards";
 import { LogsTable } from "./logs-table";
 import { DetailInsights } from "./detail-insights";
@@ -54,12 +57,14 @@ export default async function MonitorDetailPage({
 
   const monitor = monitorResult.data;
 
-  // Then fetch detail data in parallel.
-  const [statusResult, logsResult, uptimeResult, incidentsResult] = await Promise.all([
+  // Fetch detail data and plan context in parallel
+  const [statusResult, logsResult, uptimeResult, incidentsResult, userResult, monitorsResult] = await Promise.all([
     getMonitorStatus(monitorId),
     getMonitorLogs(monitorId, currentPage, 20),
     getMonitorUptime(monitorId, selectedWindow),
     getMonitorIncidents(monitorId, 0, 10),
+    getCurrentUser(),
+    getMonitors(),
   ]);
 
   const status = statusResult.data;
@@ -67,6 +72,12 @@ export default async function MonitorDetailPage({
   const uptime = uptimeResult.data;
   const incidents = incidentsResult.data;
   const quotaBlocked = status?.quotaBlocked || status?.displayState === "QUOTA_EXCEEDED" || monitor.quotaBlocked;
+
+  // Build plan context for edit dialog
+  const planContext = createPlanContext({
+    currentUser: userResult.data,
+    monitorCount: monitorsResult.data?.length ?? 0,
+  });
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -104,7 +115,7 @@ export default async function MonitorDetailPage({
                 </a>
               </div>
             </div>
-            <MonitorActions monitorId={monitorId} status={status} />
+            <MonitorActions monitor={monitor} status={status} planContext={planContext} />
           </div>
         </div>
       </div>

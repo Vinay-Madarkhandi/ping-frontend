@@ -1,6 +1,10 @@
 import { CurrentUserResponse, PlanContext, PlanLimits, UsageResponse } from "@/lib/types";
 
-// TODO: Remove this fallback when GET /api/v1/auth/me is available in all environments.
+/**
+ * Defence-in-depth defaults, used only when GET /api/v1/auth/me fails (network blip, expired
+ * session). Keeping them means a failed fetch degrades the dashboard instead of crashing it; the
+ * backend remains the sole authority on what is actually enforced.
+ */
 export const FALLBACK_FREE_PLAN: PlanLimits = {
   name: "FREE",
   maxMonitors: 5,
