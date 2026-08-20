@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Activity,
   LayoutDashboard,
   Monitor,
   BarChart3,
+  BellRing,
   Settings,
   LogOut,
   PlusCircle,
@@ -32,6 +32,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Logo } from "@/components/shared/logo";
+import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { signoutAction } from "@/lib/actions/auth";
 
 const navigationItems = [
@@ -49,6 +51,11 @@ const navigationItems = [
     title: "Analytics",
     href: "/analytics",
     icon: BarChart3,
+  },
+  {
+    title: "Alerts",
+    href: "/alerts",
+    icon: BellRing,
   },
 ];
 
@@ -72,20 +79,12 @@ export function AppSidebar() {
 
   return (
     <Sidebar>
-      <SidebarHeader>
+      <SidebarHeader className="px-3 py-3">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
+            <SidebarMenuButton size="lg" asChild className="hover:bg-transparent">
               <Link href="/dashboard">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                  <Activity className="size-4" />
-                </div>
-                <div className="flex flex-col gap-0.5 leading-none">
-                  <span className="font-semibold">Ping</span>
-                  <span className="text-xs text-muted-foreground">
-                    Server Monitoring
-                  </span>
-                </div>
+                <Logo tagline="Server monitoring" iconClassName="h-8 w-8" />
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -130,14 +129,18 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter>
+      <SidebarFooter className="gap-2">
+        <div className="flex items-center justify-between px-1">
+          <span className="text-xs text-muted-foreground">Appearance</span>
+          <ThemeToggle />
+        </div>
         <SidebarMenu>
           <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton size="lg">
                   <Avatar className="size-8">
-                    <AvatarFallback>U</AvatarFallback>
+                    <AvatarFallback className="bg-primary/15 text-primary">U</AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col gap-0.5 leading-none">
                     <span className="font-medium">Account</span>
@@ -173,4 +176,3 @@ export function AppSidebar() {
     </Sidebar>
   );
 }
-

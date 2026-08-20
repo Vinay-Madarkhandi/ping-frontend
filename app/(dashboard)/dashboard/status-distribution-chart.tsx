@@ -8,13 +8,13 @@ import { Monitor } from "@/lib/types";
 import { getMonitorDisplayState } from "@/components/shared/monitor-state-badge";
 
 const colors = {
-  UP: "#22c55e",
-  SUSPECT: "#f59e0b",
-  DOWN: "#ef4444",
-  PAUSED: "#94a3b8",
-  QUOTA_EXCEEDED: "#dc2626",
-  UNKNOWN: "#64748b",
-  INACTIVE: "#475569",
+  UP: "var(--up)",
+  SUSPECT: "var(--suspect)",
+  DOWN: "var(--down)",
+  PAUSED: "var(--paused)",
+  QUOTA_EXCEEDED: "var(--down)",
+  UNKNOWN: "var(--paused)",
+  INACTIVE: "var(--paused)",
 };
 
 export function StatusDistributionChart({ monitors }: { monitors: Monitor[] }) {
@@ -41,7 +41,7 @@ export function StatusDistributionChart({ monitors }: { monitors: Monitor[] }) {
       <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
         <ChartContainer
           config={{
-            value: { label: "Monitors", color: "#22c55e" },
+            value: { label: "Monitors", color: "var(--up)" },
           }}
           className="mx-auto h-[210px] w-full max-w-[280px] sm:h-[260px]"
         >
@@ -65,8 +65,8 @@ export function StatusDistributionChart({ monitors }: { monitors: Monitor[] }) {
           {data.map((entry) => (
             <div key={entry.name} className="flex items-center gap-1.5 rounded-md border px-2 py-1">
               <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: entry.fill }} />
-              <span>{entry.name}</span>
-              <span className="text-muted-foreground">{entry.value}</span>
+              <span className="capitalize">{entry.name.toLowerCase().replace("_", " ")}</span>
+              <span className="font-mono text-muted-foreground tabular-nums">{entry.value}</span>
             </div>
           ))}
         </div>

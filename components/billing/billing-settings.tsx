@@ -186,7 +186,7 @@ export function BillingSettings({
           </CardContent>
         </Card>
 
-        <Card className={activePro ? "border-green-500/30" : "border-primary/30"}>
+        <Card className={activePro ? "border-up/30" : "border-primary/30"}>
           <CardHeader>
             <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-md bg-primary text-primary-foreground">
               {activePro ? <CheckCircle2 className="h-5 w-5" /> : <Rocket className="h-5 w-5" />}

@@ -40,12 +40,12 @@ export function EmailVerificationBanner({ email }: EmailVerificationBannerProps)
   }
 
   return (
-    <Alert className="border-yellow-500 bg-yellow-50 dark:bg-yellow-950">
-      <AlertCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-500" />
-      <AlertTitle className="text-yellow-800 dark:text-yellow-400">
-        Email Verification Required
+    <Alert className="border-suspect/40 bg-suspect/10">
+      <AlertCircle className="h-4 w-4 text-suspect-foreground dark:text-suspect" />
+      <AlertTitle className="text-suspect-foreground dark:text-suspect">
+        Email verification required
       </AlertTitle>
-      <AlertDescription className="text-yellow-700 dark:text-yellow-300 space-y-2">
+      <AlertDescription className="space-y-2 text-suspect-foreground/90 dark:text-suspect/90">
         <p>
           We sent a verification email to <strong>{email}</strong>. Please verify your email
           to receive monitor alerts.

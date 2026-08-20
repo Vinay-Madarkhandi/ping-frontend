@@ -17,7 +17,9 @@ function EmptyState({ planContext }: { planContext: PlanContext }) {
   return (
     <Card className="border-dashed">
       <CardContent className="flex flex-col items-center justify-center py-8 sm:py-16 px-4">
-        <Server className="h-12 w-12 sm:h-16 sm:w-16 text-muted-foreground mb-4" />
+        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 sm:h-20 sm:w-20">
+          <Server className="h-7 w-7 text-primary sm:h-9 sm:w-9" />
+        </div>
         <h3 className="text-lg sm:text-xl font-semibold mb-2 text-center">No monitors configured</h3>
         <p className="text-sm sm:text-base text-muted-foreground text-center mb-6 max-w-md">
           Start monitoring your servers and services by creating your first monitor.

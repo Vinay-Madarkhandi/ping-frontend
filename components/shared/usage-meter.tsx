@@ -21,7 +21,7 @@ export function UsageMeter({ planContext }: { planContext: PlanContext }) {
     month: "short",
     day: "numeric",
   });
-  const tone = percent >= 95 ? "red" : percent >= 75 ? "amber" : "green";
+  const tone = percent >= 95 ? "down" : percent >= 75 ? "suspect" : "up";
 
   return (
     <Card className={cn(usage.overQuota && "border-destructive")}>
@@ -55,9 +55,9 @@ export function UsageMeter({ planContext }: { planContext: PlanContext }) {
         <Progress
           value={percent}
           indicatorClassName={cn(
-            tone === "green" && "bg-green-500",
-            tone === "amber" && "bg-amber-500",
-            tone === "red" && "bg-red-500"
+            tone === "up" && "bg-up",
+            tone === "suspect" && "bg-suspect",
+            tone === "down" && "bg-down"
           )}
         />
       </CardContent>

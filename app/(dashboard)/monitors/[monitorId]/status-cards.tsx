@@ -21,22 +21,22 @@ export function StatusCards({ status, uptime }: StatusCardsProps) {
     authoritativeUptime == null
       ? "text-muted-foreground"
       : authoritativeUptime >= 99
-      ? "text-green-500"
+      ? "text-up"
       : authoritativeUptime >= 95
-      ? "text-yellow-500"
-      : "text-red-500";
+      ? "text-suspect"
+      : "text-down";
 
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
       {/* Current Status */}
-      <Card>
+      <Card className="transition-shadow hover:shadow-md">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 sm:p-6 pb-1 sm:pb-2">
           <CardTitle className="text-xs sm:text-sm font-medium">Current Status</CardTitle>
           <MonitorStateBadge state={status.displayState} className="text-xs" />
         </CardHeader>
         <CardContent className="p-3 sm:p-6 pt-0">
-          <div className="text-lg sm:text-2xl font-bold">
-            {status.displayState}
+          <div className="text-lg font-semibold capitalize sm:text-2xl">
+            {status.displayState.toLowerCase()}
           </div>
           <p className="text-[10px] sm:text-xs text-muted-foreground">
             Last checked {formatBackendRelativeTime(status.lastCheckedAt)}
@@ -45,13 +45,13 @@ export function StatusCards({ status, uptime }: StatusCardsProps) {
       </Card>
 
       {/* Uptime Percentage */}
-      <Card>
+      <Card className="transition-shadow hover:shadow-md">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 sm:p-6 pb-1 sm:pb-2">
           <CardTitle className="text-xs sm:text-sm font-medium">Uptime</CardTitle>
           <TrendingUp className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent className="p-3 sm:p-6 pt-0">
-          <div className={`text-lg sm:text-2xl font-bold ${uptimeColor}`}>
+          <div className={`font-mono text-lg font-semibold tabular-nums sm:text-2xl ${uptimeColor}`} data-metric>
             {authoritativeUptime == null ? "No data" : `${authoritativeUptime.toFixed(2)}%`}
           </div>
           <p className="text-[10px] sm:text-xs text-muted-foreground">
@@ -61,16 +61,16 @@ export function StatusCards({ status, uptime }: StatusCardsProps) {
       </Card>
 
       {/* Total Checks */}
-      <Card>
+      <Card className="transition-shadow hover:shadow-md">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 sm:p-6 pb-1 sm:pb-2">
           <CardTitle className="text-xs sm:text-sm font-medium">Health Checks</CardTitle>
           <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent className="p-3 sm:p-6 pt-0">
-          <div className="text-lg sm:text-2xl font-bold">
-            <span className="text-green-500">{status.totalUp}</span>
+          <div className="font-mono text-lg font-semibold tabular-nums sm:text-2xl" data-metric>
+            <span className="text-up">{status.totalUp}</span>
             <span className="text-muted-foreground mx-0.5 sm:mx-1">/</span>
-            <span className="text-red-500">{status.totalDown}</span>
+            <span className="text-down">{status.totalDown}</span>
           </div>
           <p className="text-[10px] sm:text-xs text-muted-foreground">
             Up / Down checks
@@ -79,17 +79,17 @@ export function StatusCards({ status, uptime }: StatusCardsProps) {
       </Card>
 
       {/* Last Downtime */}
-      <Card>
+      <Card className="transition-shadow hover:shadow-md">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 sm:p-6 pb-1 sm:pb-2">
           <CardTitle className="text-xs sm:text-sm font-medium">Last Downtime</CardTitle>
           {status.lastDowntimeAt ? (
-            <AlertTriangle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-yellow-500" />
+            <AlertTriangle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-suspect" />
           ) : (
             <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
           )}
         </CardHeader>
         <CardContent className="p-3 sm:p-6 pt-0">
-          <div className="text-lg sm:text-2xl font-bold">
+          <div className="text-lg font-semibold sm:text-2xl">
             {status.lastDowntimeAt
               ? formatBackendRelativeTime(status.lastDowntimeAt)
               : "Never"}
