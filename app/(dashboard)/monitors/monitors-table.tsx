@@ -63,6 +63,7 @@ import {
   getMonitorDisplayState,
   MonitorStateBadge,
 } from "@/components/shared/monitor-state-badge";
+import { SslExpiryBadge } from "@/components/shared/ssl-expiry-badge";
 
 interface MonitorsTableProps {
   monitors: Monitor[];
@@ -455,13 +456,14 @@ export function MonitorsTable({ monitors }: MonitorsTableProps) {
                           >
                             {monitor.name}
                           </Link>
-                          {monitor.tags && monitor.tags.length > 0 ? (
+                          {(monitor.tags && monitor.tags.length > 0) || monitor.sslCertExpiresAt ? (
                             <div className="mt-1 flex flex-wrap gap-1">
-                              {monitor.tags.map((tag) => (
+                              {monitor.tags?.map((tag) => (
                                 <Badge key={tag} variant="secondary" className="text-[10px] font-normal">
                                   {tag}
                                 </Badge>
                               ))}
+                              <SslExpiryBadge sslCertExpiresAt={monitor.sslCertExpiresAt} />
                             </div>
                           ) : null}
                         </TableCell>
@@ -568,13 +570,14 @@ export function MonitorsTable({ monitors }: MonitorsTableProps) {
                         <p className="text-sm text-muted-foreground truncate mt-1">
                           {monitor.url}
                         </p>
-                        {monitor.tags && monitor.tags.length > 0 ? (
+                        {(monitor.tags && monitor.tags.length > 0) || monitor.sslCertExpiresAt ? (
                           <div className="mt-1.5 flex flex-wrap gap-1">
-                            {monitor.tags.map((tag) => (
+                            {monitor.tags?.map((tag) => (
                               <Badge key={tag} variant="secondary" className="text-[10px] font-normal">
                                 {tag}
                               </Badge>
                             ))}
+                            <SslExpiryBadge sslCertExpiresAt={monitor.sslCertExpiresAt} />
                           </div>
                         ) : null}
                       </div>

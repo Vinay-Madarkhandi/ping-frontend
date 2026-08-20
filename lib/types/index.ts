@@ -124,6 +124,8 @@ export interface Monitor {
   intervalMilliseconds: number;
   timeoutMilliseconds: number;
   tags: string[];
+  /** Null for HTTP monitors or before the first successful TLS handshake. */
+  sslCertExpiresAt: string | null;
 }
 
 export type MonitorHealthState = "UNKNOWN" | "UP" | "SUSPECT" | "DOWN";
@@ -160,6 +162,10 @@ export interface MonitorStatus {
   currentState: MonitorHealthState;
   displayState: MonitorDisplayState;
   quotaBlocked: boolean;
+  /** Null for HTTP monitors or before the first successful TLS handshake. */
+  sslCertExpiresAt: string | null;
+  /** Convenience for the UI; null whenever sslCertExpiresAt is null. Can be negative if expired. */
+  sslDaysRemaining: number | null;
 }
 
 export interface Incident {
