@@ -74,6 +74,7 @@ export const createMonitorSchema = z.object({
   keyword: z.string().max(500, "Keyword must be at most 500 characters").optional(),
   followRedirects: z.boolean().optional(),
   customHeaders: z.record(z.string(), z.string()).optional(),
+  tags: z.array(z.string().max(30, "Tags must be at most 30 characters")).max(10, "At most 10 tags").optional(),
 });
 
 export const editMonitorSchema = z.object({
@@ -109,6 +110,7 @@ export const editMonitorSchema = z.object({
   followRedirects: z.boolean().optional(),
   customHeaders: z.record(z.string(), z.string()).optional(),
   active: z.boolean().optional(),
+  tags: z.array(z.string().max(30, "Tags must be at most 30 characters")).max(10, "At most 10 tags").optional(),
 });
 
 // Status page schema

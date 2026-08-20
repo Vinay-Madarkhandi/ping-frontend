@@ -37,6 +37,7 @@ import { editMonitorAction } from "@/lib/actions/monitors";
 import { formatMilliseconds } from "@/lib/plans";
 import { Monitor, PlanContext } from "@/lib/types";
 import { editMonitorSchema, EditMonitorInput } from "@/lib/validations";
+import { TagsInput } from "@/components/shared/tags-input";
 
 const intervalOptions = [
   { value: 10000, label: "10 seconds" },
@@ -86,6 +87,7 @@ export function EditMonitorDialog({
       monitorMethod: monitor.method,
       followRedirects: true,
       active: monitor.active,
+      tags: monitor.tags ?? [],
     },
   });
 
@@ -99,6 +101,7 @@ export function EditMonitorDialog({
       monitorMethod: monitor.method,
       followRedirects: true,
       active: monitor.active,
+      tags: monitor.tags ?? [],
     });
     setHeaders([{ key: "", value: "" }]);
   }, [monitor, form]);
@@ -204,6 +207,24 @@ export function EditMonitorDialog({
                     <Input placeholder="https://example.com" disabled={isLoading} {...field} />
                   </FormControl>
                   <FormDescription>The URL to monitor</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="tags"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tags</FormLabel>
+                  <FormControl>
+                    <TagsInput
+                      value={field.value ?? []}
+                      onChange={field.onChange}
+                      disabled={isLoading}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

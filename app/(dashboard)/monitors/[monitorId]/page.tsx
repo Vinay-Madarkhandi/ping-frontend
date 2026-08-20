@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   getMonitorById,
@@ -114,6 +115,15 @@ export default async function MonitorDetailPage({
                   <ExternalLink className="h-4 w-4" />
                 </a>
               </div>
+              {monitor.tags && monitor.tags.length > 0 ? (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {monitor.tags.map((tag) => (
+                    <Badge key={tag} variant="secondary" className="text-xs font-normal">
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              ) : null}
             </div>
             <MonitorActions monitor={monitor} status={status} planContext={planContext} />
           </div>

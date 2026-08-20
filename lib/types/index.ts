@@ -97,6 +97,7 @@ export interface CreateMonitorRequest {
   keyword?: string;
   followRedirects?: boolean;
   customHeaders?: Record<string, string>;
+  tags?: string[];
 }
 
 export interface CreateMonitorResponse {
@@ -122,6 +123,7 @@ export interface Monitor {
   displayState: MonitorDisplayState;
   intervalMilliseconds: number;
   timeoutMilliseconds: number;
+  tags: string[];
 }
 
 export type MonitorHealthState = "UNKNOWN" | "UP" | "SUSPECT" | "DOWN";

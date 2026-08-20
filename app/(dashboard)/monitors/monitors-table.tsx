@@ -205,6 +205,15 @@ export function MonitorsTable({ monitors }: MonitorsTableProps) {
                       >
                         {monitor.name}
                       </Link>
+                      {monitor.tags && monitor.tags.length > 0 ? (
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {monitor.tags.map((tag) => (
+                            <Badge key={tag} variant="secondary" className="text-[10px] font-normal">
+                              {tag}
+                            </Badge>
+                          ))}
+                        </div>
+                      ) : null}
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline">{monitor.method || "GET"}</Badge>
@@ -309,6 +318,15 @@ export function MonitorsTable({ monitors }: MonitorsTableProps) {
                     <p className="text-sm text-muted-foreground truncate mt-1">
                       {monitor.url}
                     </p>
+                    {monitor.tags && monitor.tags.length > 0 ? (
+                      <div className="mt-1.5 flex flex-wrap gap-1">
+                        {monitor.tags.map((tag) => (
+                          <Badge key={tag} variant="secondary" className="text-[10px] font-normal">
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    ) : null}
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
