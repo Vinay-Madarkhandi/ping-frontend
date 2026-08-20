@@ -15,6 +15,7 @@ import {
 } from "@/lib/api/monitors";
 import { getCurrentUser } from "@/lib/api/auth";
 import { getAlertChannels, getMonitorAlertChannels } from "@/lib/api/alert-channels";
+import { getMaintenanceWindows } from "@/lib/api/maintenance-windows";
 import { createPlanContext } from "@/lib/plans";
 import { StatusCards } from "./status-cards";
 import { LogsTable } from "./logs-table";
@@ -23,6 +24,7 @@ import { MonitorActions } from "./monitor-actions";
 import { AutoRefresh } from "@/components/shared/auto-refresh";
 import { MonitorStateBadge } from "@/components/shared/monitor-state-badge";
 import { HeartbeatUrlDisplay } from "@/components/shared/heartbeat-url-display";
+import { MaintenanceWindowsCard } from "@/components/shared/maintenance-windows-card";
 
 interface MonitorDetailPageProps {
   params: Promise<{
@@ -70,6 +72,7 @@ export default async function MonitorDetailPage({
     monitorsResult,
     alertChannelsResult,
     monitorChannelIdsResult,
+    maintenanceWindowsResult,
   ] = await Promise.all([
     getMonitorStatus(monitorId),
     getMonitorLogs(monitorId, currentPage, 20),
@@ -79,6 +82,7 @@ export default async function MonitorDetailPage({
     getMonitors(),
     getAlertChannels(),
     getMonitorAlertChannels(monitorId),
+    getMaintenanceWindows(monitorId),
   ]);
 
   const status = statusResult.data;
@@ -198,6 +202,8 @@ export default async function MonitorDetailPage({
         incidents={incidents}
         selectedWindow={selectedWindow}
       />
+
+      <MaintenanceWindowsCard monitorId={monitorId} windows={maintenanceWindowsResult.data ?? []} />
 
       {/* Logs Table */}
       {logs ? (

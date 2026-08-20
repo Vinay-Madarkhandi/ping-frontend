@@ -139,6 +139,19 @@ export const editHeartbeatMonitorSchema = createHeartbeatMonitorSchema.extend({
   active: z.boolean().optional(),
 });
 
+// Maintenance window schema — start/end come from <input type="datetime-local"> fields (local time,
+// no timezone), converted to full ISO instants by the server action before hitting the backend.
+export const maintenanceWindowSchema = z
+  .object({
+    title: z.string().max(200, "Title must be at most 200 characters").optional(),
+    startsAt: z.string().min(1, "Start time is required"),
+    endsAt: z.string().min(1, "End time is required"),
+  })
+  .refine((data) => new Date(data.endsAt).getTime() > new Date(data.startsAt).getTime(), {
+    message: "End time must be after start time",
+    path: ["endsAt"],
+  });
+
 // Status page schema
 export const statusPageSchema = z.object({
   title: z
@@ -184,3 +197,4 @@ export type CreateHeartbeatMonitorInput = z.infer<typeof createHeartbeatMonitorS
 export type EditHeartbeatMonitorInput = z.infer<typeof editHeartbeatMonitorSchema>;
 export type StatusPageInput = z.infer<typeof statusPageSchema>;
 export type AlertChannelInput = z.infer<typeof alertChannelSchema>;
+export type MaintenanceWindowInput = z.infer<typeof maintenanceWindowSchema>;

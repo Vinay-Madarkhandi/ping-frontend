@@ -280,6 +280,25 @@ export interface AlertChannelTestResult {
   message: string;
 }
 
+// Maintenance Window Types
+export interface MaintenanceWindow {
+  id: string;
+  title: string | null;
+  startsAt: string;
+  endsAt: string;
+  /** True once the worker has actually paused the monitor for this window (start time reached). */
+  active: boolean;
+  /** True once the window has ended and the monitor (if paused by it) has been resumed. */
+  completed: boolean;
+  createdAt: string;
+}
+
+export interface MaintenanceWindowRequest {
+  title?: string;
+  startsAt: string;
+  endsAt: string;
+}
+
 // API Error Types
 export interface ApiError {
   message: string;
