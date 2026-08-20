@@ -234,6 +234,8 @@ export interface StatusPage {
   title: string;
   description: string | null;
   monitors: StatusPageMonitorSummary[];
+  logoUrl: string | null;
+  passwordProtected: boolean;
 }
 
 export interface StatusPageRequest {
@@ -241,6 +243,9 @@ export interface StatusPageRequest {
   description?: string;
   slug: string;
   monitorIds: string[];
+  logoUrl?: string;
+  /** Omit to leave the password unchanged; "" removes protection; anything else sets/replaces it. */
+  password?: string;
 }
 
 export type PublicMonitorState = "UP" | "SUSPECT" | "DOWN" | "PAUSED" | "UNKNOWN";
@@ -256,6 +261,7 @@ export type OverallStatus = "OPERATIONAL" | "DEGRADED" | "PARTIAL_OUTAGE" | "MAJ
 export interface PublicStatusPage {
   title: string;
   description: string | null;
+  logoUrl: string | null;
   overallStatus: OverallStatus;
   monitors: PublicMonitorStatus[];
   updatedAt: string;

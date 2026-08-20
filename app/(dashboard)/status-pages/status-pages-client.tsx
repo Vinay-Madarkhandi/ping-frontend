@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ExternalLink, Globe, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
+import { ExternalLink, Globe, Lock, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -111,7 +111,12 @@ export function StatusPagesClient({ statusPages, monitors }: StatusPagesClientPr
             <Card key={page.id}>
               <CardHeader className="flex flex-row items-start justify-between gap-2 pb-3">
                 <div className="min-w-0 flex-1">
-                  <CardTitle className="truncate text-lg">{page.title}</CardTitle>
+                  <div className="flex items-center gap-1.5">
+                    <CardTitle className="truncate text-lg">{page.title}</CardTitle>
+                    {page.passwordProtected ? (
+                      <Lock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-label="Password protected" />
+                    ) : null}
+                  </div>
                   <Link
                     href={`/status/${page.slug}`}
                     target="_blank"

@@ -196,6 +196,21 @@ export const statusPageSchema = z.object({
     .max(64, "URL must be at most 64 characters")
     .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, "URL can only contain lowercase letters, numbers, and hyphens"),
   monitorIds: z.array(z.string()).min(1, "Select at least one monitor"),
+  logoUrl: z
+    .string()
+    .max(2048, "Logo URL must be at most 2048 characters")
+    .refine(
+      (url) => url === "" || url.startsWith("http://") || url.startsWith("https://"),
+      "Logo URL must start with http:// or https://"
+    )
+    .optional(),
+  // Left undefined to leave the current password unchanged, "" to remove protection, or set/replace it.
+  password: z.string().max(100, "Password must be at most 100 characters").optional(),
+});
+
+// Status page unlock (password gate) schema
+export const statusPageUnlockSchema = z.object({
+  password: z.string().min(1, "Password is required"),
 });
 
 // Alert channel schema
@@ -229,5 +244,6 @@ export type EditHeartbeatMonitorInput = z.infer<typeof editHeartbeatMonitorSchem
 export type CreateTcpMonitorInput = z.infer<typeof createTcpMonitorSchema>;
 export type EditTcpMonitorInput = z.infer<typeof editTcpMonitorSchema>;
 export type StatusPageInput = z.infer<typeof statusPageSchema>;
+export type StatusPageUnlockInput = z.infer<typeof statusPageUnlockSchema>;
 export type AlertChannelInput = z.infer<typeof alertChannelSchema>;
 export type MaintenanceWindowInput = z.infer<typeof maintenanceWindowSchema>;

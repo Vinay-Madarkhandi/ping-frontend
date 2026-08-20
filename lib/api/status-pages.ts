@@ -35,9 +35,21 @@ export async function deleteStatusPage(id: string) {
   });
 }
 
-/** Unauthenticated — safe to call whether or not the caller has a session. */
+/**
+ * Unauthenticated — safe to call whether or not the caller has a session. Returns a 401
+ * ({@code error.status === 401}) when the page is password protected; call
+ * {@link unlockPublicStatusPage} with the password to get the same shape back.
+ */
 export async function getPublicStatusPage(slug: string) {
   return serverFetch<PublicStatusPage>(`/api/v1/public/status-pages/${encodeURIComponent(slug)}`, {
     method: "GET",
   });
+}
+
+/** Verifies a password against a protected status page; 401 on a wrong password. */
+export async function unlockPublicStatusPage(slug: string, password: string) {
+  return serverFetch<PublicStatusPage>(
+    `/api/v1/public/status-pages/${encodeURIComponent(slug)}/unlock`,
+    { method: "POST", body: { password } }
+  );
 }
