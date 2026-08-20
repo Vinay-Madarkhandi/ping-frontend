@@ -1,4 +1,4 @@
-import { Server, Archive } from "lucide-react";
+import { Server, Archive, Download } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -58,7 +58,15 @@ export default async function MonitorsPage() {
             Manage and view all your configured monitors
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          {monitors && monitors.length > 0 ? (
+            <Button variant="outline" size="sm" asChild>
+              <a href="/api/export/monitors">
+                <Download className="mr-2 h-4 w-4" />
+                Export CSV
+              </a>
+            </Button>
+          ) : null}
           <Button variant="outline" size="sm" asChild>
             <Link href="/monitors/archived">
               <Archive className="mr-2 h-4 w-4" />

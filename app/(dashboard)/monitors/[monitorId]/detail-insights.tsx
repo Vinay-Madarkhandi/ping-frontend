@@ -11,7 +11,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { AlertCircle, Clock, Timer, Zap } from "lucide-react";
+import { AlertCircle, Clock, Download, Timer, Zap } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -247,10 +247,22 @@ export function DetailInsights({
 
       <Card className="min-w-0">
         <CardHeader className="p-4 pb-2 sm:p-6 sm:pb-2">
-          <CardTitle className="text-base sm:text-lg">Incidents</CardTitle>
-          <CardDescription>
-            Open and resolved outages detected after the failure threshold.
-          </CardDescription>
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <CardTitle className="text-base sm:text-lg">Incidents</CardTitle>
+              <CardDescription>
+                Open and resolved outages detected after the failure threshold.
+              </CardDescription>
+            </div>
+            {incidents?.content.length ? (
+              <Button variant="outline" size="sm" asChild className="shrink-0">
+                <a href={`/api/export/monitors/${monitorId}/incidents`}>
+                  <Download className="mr-2 h-4 w-4" />
+                  <span className="hidden sm:inline">Export</span>
+                </a>
+              </Button>
+            ) : null}
+          </div>
         </CardHeader>
         <CardContent className="p-0 sm:p-6 sm:pt-0">
           {!incidents?.content.length ? (
