@@ -195,6 +195,45 @@ export interface AlertDelivery {
   sentAt?: string;
 }
 
+// Status Page Types
+export interface StatusPageMonitorSummary {
+  id: string;
+  name: string;
+}
+
+export interface StatusPage {
+  id: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  monitors: StatusPageMonitorSummary[];
+}
+
+export interface StatusPageRequest {
+  title: string;
+  description?: string;
+  slug: string;
+  monitorIds: string[];
+}
+
+export type PublicMonitorState = "UP" | "SUSPECT" | "DOWN" | "PAUSED" | "UNKNOWN";
+
+export interface PublicMonitorStatus {
+  name: string;
+  state: PublicMonitorState;
+  uptimePercentage90d: number | null;
+}
+
+export type OverallStatus = "OPERATIONAL" | "DEGRADED" | "PARTIAL_OUTAGE" | "MAJOR_OUTAGE";
+
+export interface PublicStatusPage {
+  title: string;
+  description: string | null;
+  overallStatus: OverallStatus;
+  monitors: PublicMonitorStatus[];
+  updatedAt: string;
+}
+
 // API Error Types
 export interface ApiError {
   message: string;

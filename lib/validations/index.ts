@@ -111,6 +111,21 @@ export const editMonitorSchema = z.object({
   active: z.boolean().optional(),
 });
 
+// Status page schema
+export const statusPageSchema = z.object({
+  title: z
+    .string()
+    .min(1, "Title is required")
+    .max(255, "Title must be at most 255 characters"),
+  description: z.string().max(1000, "Description must be at most 1000 characters").optional(),
+  slug: z
+    .string()
+    .min(3, "URL must be at least 3 characters")
+    .max(64, "URL must be at most 64 characters")
+    .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, "URL can only contain lowercase letters, numbers, and hyphens"),
+  monitorIds: z.array(z.string()).min(1, "Select at least one monitor"),
+});
+
 // Type exports
 export type SignupInput = z.infer<typeof signupSchema>;
 export type SigninInput = z.infer<typeof signinSchema>;
@@ -119,3 +134,4 @@ export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export type CreateMonitorInput = z.infer<typeof createMonitorSchema>;
 export type EditMonitorInput = z.infer<typeof editMonitorSchema>;
+export type StatusPageInput = z.infer<typeof statusPageSchema>;
