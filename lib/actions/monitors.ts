@@ -16,10 +16,14 @@ import {
   editMonitorSchema,
   createHeartbeatMonitorSchema,
   editHeartbeatMonitorSchema,
+  createTcpMonitorSchema,
+  editTcpMonitorSchema,
   CreateMonitorInput,
   EditMonitorInput,
   CreateHeartbeatMonitorInput,
   EditHeartbeatMonitorInput,
+  CreateTcpMonitorInput,
+  EditTcpMonitorInput,
 } from "@/lib/validations";
 import { ActionResult, CreateMonitorResponse, Monitor } from "@/lib/types";
 
@@ -85,6 +89,40 @@ export async function createHeartbeatMonitorAction(
   }
 
   const { data, error } = await createMonitor({ ...validationResult.data, kind: "HEARTBEAT" });
+
+  if (error) {
+    return {
+      success: false,
+      error: error.message,
+      status: error.status,
+    };
+  }
+
+  revalidateMonitorViews(data?.id);
+
+  return {
+    success: true,
+    data,
+  };
+}
+
+/**
+ * Server Action: Create a new TCP (raw port reachability) monitor. Kept as its own action, like
+ * the heartbeat one, so validation never has to account for a shape that isn't its own.
+ */
+export async function createTcpMonitorAction(
+  formData: CreateTcpMonitorInput
+): Promise<ActionResult<CreateMonitorResponse>> {
+  const validationResult = createTcpMonitorSchema.safeParse(formData);
+
+  if (!validationResult.success) {
+    return {
+      success: false,
+      error: validationResult.error.issues[0]?.message || "Invalid input",
+    };
+  }
+
+  const { data, error } = await createMonitor({ ...validationResult.data, kind: "TCP" });
 
   if (error) {
     return {
@@ -281,6 +319,47 @@ export async function editHeartbeatMonitorAction(
   }
 
   const validationResult = editHeartbeatMonitorSchema.safeParse(formData);
+
+  if (!validationResult.success) {
+    return {
+      success: false,
+      error: validationResult.error.issues[0]?.message || "Invalid input",
+    };
+  }
+
+  const { data, error } = await editMonitor(monitorId, validationResult.data);
+
+  if (error) {
+    return {
+      success: false,
+      error: error.message,
+      status: error.status,
+    };
+  }
+
+  revalidateMonitorViews(monitorId);
+
+  return {
+    success: true,
+    data,
+  };
+}
+
+/**
+ * Server Action: Edit a TCP monitor's configuration (name, host, port, interval, tags, active).
+ */
+export async function editTcpMonitorAction(
+  monitorId: string,
+  formData: EditTcpMonitorInput
+): Promise<ActionResult<Monitor>> {
+  if (!monitorId) {
+    return {
+      success: false,
+      error: "Monitor ID is required",
+    };
+  }
+
+  const validationResult = editTcpMonitorSchema.safeParse(formData);
 
   if (!validationResult.success) {
     return {

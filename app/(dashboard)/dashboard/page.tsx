@@ -96,7 +96,11 @@ function MonitorCard({ monitor }: { monitor: Monitor }) {
               <div className="min-w-0">
                 <h3 className="truncate font-medium">{monitor.name}</h3>
                 <p className="truncate text-sm text-muted-foreground sm:max-w-[200px]">
-                  {monitor.kind === "HEARTBEAT" ? "Heartbeat monitor" : monitor.url}
+                  {monitor.kind === "HEARTBEAT"
+                    ? "Heartbeat monitor"
+                    : monitor.kind === "TCP"
+                    ? `${monitor.url}:${monitor.port}`
+                    : monitor.url}
                 </p>
               </div>
             </div>

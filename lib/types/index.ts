@@ -87,7 +87,7 @@ export interface BillingVerifyResponse {
 }
 
 // Monitor Types
-export type MonitorKind = "HTTP" | "HEARTBEAT";
+export type MonitorKind = "HTTP" | "HEARTBEAT" | "TCP";
 
 export interface CreateMonitorRequest {
   name: string;
@@ -99,6 +99,8 @@ export interface CreateMonitorRequest {
   kind?: MonitorKind;
   /** HEARTBEAT only: extra time past the interval before a missed ping counts as DOWN. */
   gracePeriodMilliseconds?: number;
+  /** TCP only: the port to connect to. */
+  port?: number;
   expectedStatusCode?: number;
   keyword?: string;
   followRedirects?: boolean;
@@ -141,6 +143,8 @@ export interface Monitor {
   heartbeatUrl: string | null;
   /** HEARTBEAT only: extra time past the interval before a missed ping counts as DOWN. */
   gracePeriodMilliseconds: number;
+  /** TCP only: the port connected to. */
+  port: number | null;
 }
 
 export type MonitorHealthState = "UNKNOWN" | "UP" | "SUSPECT" | "DOWN";

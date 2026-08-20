@@ -7,6 +7,7 @@ import {
   MoreHorizontal,
   ExternalLink,
   HeartPulse,
+  Network,
   Trash2,
   Eye,
   Pause,
@@ -68,6 +69,12 @@ import { SslExpiryBadge } from "@/components/shared/ssl-expiry-badge";
 
 interface MonitorsTableProps {
   monitors: Monitor[];
+}
+
+function targetLabel(monitor: Monitor) {
+  if (monitor.kind === "HEARTBEAT") return "Waiting for pings";
+  if (monitor.kind === "TCP") return `${monitor.url}:${monitor.port}`;
+  return monitor.url ?? "";
 }
 
 const statusFilters: { value: string; label: string }[] = [
@@ -474,13 +481,18 @@ export function MonitorsTable({ monitors }: MonitorsTableProps) {
                               <HeartPulse className="h-3 w-3" />
                               Heartbeat
                             </Badge>
+                          ) : monitor.kind === "TCP" ? (
+                            <Badge variant="outline" className="gap-1">
+                              <Network className="h-3 w-3" />
+                              TCP
+                            </Badge>
                           ) : (
                             <Badge variant="outline">{monitor.method || "GET"}</Badge>
                           )}
                         </TableCell>
                         <TableCell>
                           <span className="text-muted-foreground truncate max-w-[300px] block">
-                            {monitor.kind === "HEARTBEAT" ? "Waiting for pings" : monitor.url}
+                            {targetLabel(monitor)}
                           </span>
                         </TableCell>
                         <TableCell>
@@ -508,7 +520,7 @@ export function MonitorsTable({ monitors }: MonitorsTableProps) {
                                   View Details
                                 </Link>
                               </DropdownMenuItem>
-                              {monitor.url ? (
+                              {monitor.kind === "HTTP" && monitor.url ? (
                                 <DropdownMenuItem asChild>
                                   <a
                                     href={monitor.url}
@@ -578,7 +590,7 @@ export function MonitorsTable({ monitors }: MonitorsTableProps) {
                           {monitor.name}
                         </Link>
                         <p className="text-sm text-muted-foreground truncate mt-1">
-                          {monitor.kind === "HEARTBEAT" ? "Waiting for pings" : monitor.url}
+                          {targetLabel(monitor)}
                         </p>
                         {(monitor.tags && monitor.tags.length > 0) || monitor.sslCertExpiresAt ? (
                           <div className="mt-1.5 flex flex-wrap gap-1">
@@ -605,7 +617,7 @@ export function MonitorsTable({ monitors }: MonitorsTableProps) {
                               View Details
                             </Link>
                           </DropdownMenuItem>
-                          {monitor.url ? (
+                          {monitor.kind === "HTTP" && monitor.url ? (
                             <DropdownMenuItem asChild>
                               <a
                                 href={monitor.url}
@@ -657,6 +669,11 @@ export function MonitorsTable({ monitors }: MonitorsTableProps) {
                           <>
                             <HeartPulse className="h-3 w-3" />
                             Heartbeat
+                          </>
+                        ) : monitor.kind === "TCP" ? (
+                          <>
+                            <Network className="h-3 w-3" />
+                            TCP
                           </>
                         ) : (
                           monitor.method || "GET"

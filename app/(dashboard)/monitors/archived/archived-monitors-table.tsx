@@ -18,6 +18,12 @@ import {
 import { Monitor } from "@/lib/types";
 import { restoreMonitorAction } from "@/lib/actions/monitors";
 
+function targetLabel(monitor: Monitor) {
+  if (monitor.kind === "HEARTBEAT") return "Heartbeat monitor";
+  if (monitor.kind === "TCP") return `${monitor.url}:${monitor.port}`;
+  return monitor.url ?? "";
+}
+
 interface ArchivedMonitorsTableProps {
   monitors: Monitor[];
 }
@@ -73,13 +79,13 @@ export function ArchivedMonitorsTable({ monitors }: ArchivedMonitorsTableProps) 
                 <div>
                   <div>{monitor.name}</div>
                   <div className="text-xs text-muted-foreground sm:hidden">
-                    {monitor.kind === "HEARTBEAT" ? "Heartbeat monitor" : monitor.url}
+                    {targetLabel(monitor)}
                   </div>
                 </div>
               </TableCell>
               <TableCell className="hidden sm:table-cell">
                 <div className="max-w-xs truncate text-sm">
-                  {monitor.kind === "HEARTBEAT" ? "Heartbeat monitor" : monitor.url}
+                  {targetLabel(monitor)}
                 </div>
               </TableCell>
               <TableCell className="hidden md:table-cell">

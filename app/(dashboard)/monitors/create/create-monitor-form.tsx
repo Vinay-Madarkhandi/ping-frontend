@@ -43,6 +43,7 @@ import { PlanContext } from "@/lib/types";
 import { createMonitorSchema, CreateMonitorInput } from "@/lib/validations";
 import { TagsInput } from "@/components/shared/tags-input";
 import { CreateHeartbeatMonitorForm } from "./create-heartbeat-monitor-form";
+import { CreateTcpMonitorForm } from "./create-tcp-monitor-form";
 
 const intervalOptions = [
   { value: 10000, label: "10 seconds" },
@@ -222,9 +223,13 @@ export function CreateMonitorForm({ planContext }: { planContext: PlanContext })
             <TabsList className="mb-4 sm:mb-6">
               <TabsTrigger value="http">HTTP endpoint</TabsTrigger>
               <TabsTrigger value="heartbeat">Heartbeat / cron job</TabsTrigger>
+              <TabsTrigger value="tcp">TCP port</TabsTrigger>
             </TabsList>
             <TabsContent value="heartbeat">
               <CreateHeartbeatMonitorForm planContext={planContext} />
+            </TabsContent>
+            <TabsContent value="tcp">
+              <CreateTcpMonitorForm planContext={planContext} />
             </TabsContent>
             <TabsContent value="http">
           <Form {...form}>

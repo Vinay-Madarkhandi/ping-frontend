@@ -125,6 +125,10 @@ export default async function MonitorDetailPage({
                 <p className="text-sm sm:text-base text-muted-foreground truncate mt-1">
                   Heartbeat monitor — waiting for the job to ping in
                 </p>
+              ) : monitor.kind === "TCP" ? (
+                <p className="text-sm sm:text-base text-muted-foreground truncate mt-1">
+                  {monitor.url}:{monitor.port}
+                </p>
               ) : (
                 <div className="flex items-center gap-2 mt-1">
                   <p className="text-sm sm:text-base text-muted-foreground truncate">{monitor.url}</p>

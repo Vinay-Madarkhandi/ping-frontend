@@ -139,6 +139,37 @@ export const editHeartbeatMonitorSchema = createHeartbeatMonitorSchema.extend({
   active: z.boolean().optional(),
 });
 
+// TCP (raw port reachability) monitor schemas — a bare hostname, not a full URL, plus a port.
+export const createTcpMonitorSchema = z.object({
+  name: z
+    .string()
+    .min(1, "Name is required")
+    .max(100, "Name must be at most 100 characters"),
+  url: z
+    .string()
+    .min(1, "Host is required")
+    .max(2048, "Host must be at most 2048 characters")
+    .refine((host) => !host.includes("://"), "Enter a bare hostname, not a URL (no http://)"),
+  port: z
+    .number()
+    .int("Port must be a whole number")
+    .min(1, "Port must be at least 1")
+    .max(65535, "Port must be at most 65535"),
+  intervalMilliseconds: z
+    .number()
+    .positive("Interval must be greater than 0")
+    .max(86400000, "Interval must be at most 24 hours"),
+  timeoutMilliseconds: z
+    .number()
+    .positive("Timeout must be greater than 0")
+    .max(60000, "Timeout must be at most 60 seconds"),
+  tags: z.array(z.string().max(30, "Tags must be at most 30 characters")).max(10, "At most 10 tags").optional(),
+});
+
+export const editTcpMonitorSchema = createTcpMonitorSchema.extend({
+  active: z.boolean().optional(),
+});
+
 // Maintenance window schema — start/end come from <input type="datetime-local"> fields (local time,
 // no timezone), converted to full ISO instants by the server action before hitting the backend.
 export const maintenanceWindowSchema = z
@@ -195,6 +226,8 @@ export type CreateMonitorInput = z.infer<typeof createMonitorSchema>;
 export type EditMonitorInput = z.infer<typeof editMonitorSchema>;
 export type CreateHeartbeatMonitorInput = z.infer<typeof createHeartbeatMonitorSchema>;
 export type EditHeartbeatMonitorInput = z.infer<typeof editHeartbeatMonitorSchema>;
+export type CreateTcpMonitorInput = z.infer<typeof createTcpMonitorSchema>;
+export type EditTcpMonitorInput = z.infer<typeof editTcpMonitorSchema>;
 export type StatusPageInput = z.infer<typeof statusPageSchema>;
 export type AlertChannelInput = z.infer<typeof alertChannelSchema>;
 export type MaintenanceWindowInput = z.infer<typeof maintenanceWindowSchema>;

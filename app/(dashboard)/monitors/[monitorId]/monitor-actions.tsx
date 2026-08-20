@@ -14,6 +14,7 @@ import {
 } from "@/lib/actions/monitors";
 import { EditMonitorDialog } from "@/components/shared/edit-monitor-dialog";
 import { EditHeartbeatMonitorDialog } from "@/components/shared/edit-heartbeat-monitor-dialog";
+import { EditTcpMonitorDialog } from "@/components/shared/edit-tcp-monitor-dialog";
 
 interface MonitorActionsProps {
   monitor: Monitor;
@@ -163,6 +164,16 @@ export function MonitorActions({
 
       {monitor.kind === "HEARTBEAT" ? (
         <EditHeartbeatMonitorDialog
+          monitor={monitor}
+          planContext={planContext}
+          alertChannels={alertChannels}
+          selectedChannelIds={selectedChannelIds}
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          onSuccess={() => router.refresh()}
+        />
+      ) : monitor.kind === "TCP" ? (
+        <EditTcpMonitorDialog
           monitor={monitor}
           planContext={planContext}
           alertChannels={alertChannels}
