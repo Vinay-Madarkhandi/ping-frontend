@@ -35,12 +35,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { createMonitorAction } from "@/lib/actions/monitors";
 import { formatMilliseconds, formatNumber, isMonitorLimitReached } from "@/lib/plans";
 import { PlanContext } from "@/lib/types";
 import { createMonitorSchema, CreateMonitorInput } from "@/lib/validations";
 import { TagsInput } from "@/components/shared/tags-input";
+import { CreateHeartbeatMonitorForm } from "./create-heartbeat-monitor-form";
+import { CreateTcpMonitorForm } from "./create-tcp-monitor-form";
 
 const intervalOptions = [
   { value: 10000, label: "10 seconds" },
@@ -216,6 +219,19 @@ export function CreateMonitorForm({ planContext }: { planContext: PlanContext })
           </div>
         </CardHeader>
         <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
+          <Tabs defaultValue="http">
+            <TabsList className="mb-4 sm:mb-6">
+              <TabsTrigger value="http">HTTP endpoint</TabsTrigger>
+              <TabsTrigger value="heartbeat">Heartbeat / cron job</TabsTrigger>
+              <TabsTrigger value="tcp">TCP port</TabsTrigger>
+            </TabsList>
+            <TabsContent value="heartbeat">
+              <CreateHeartbeatMonitorForm planContext={planContext} />
+            </TabsContent>
+            <TabsContent value="tcp">
+              <CreateTcpMonitorForm planContext={planContext} />
+            </TabsContent>
+            <TabsContent value="http">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
               {form.formState.errors.root?.message ? (
@@ -538,6 +554,8 @@ export function CreateMonitorForm({ planContext }: { planContext: PlanContext })
               </div>
             </form>
           </Form>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
     </div>

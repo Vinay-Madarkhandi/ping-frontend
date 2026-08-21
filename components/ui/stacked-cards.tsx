@@ -102,6 +102,10 @@ function FannedStack({
 }: StackVariantProps & { cardSpacing: number; containerRef: React.RefObject<HTMLDivElement | null> }) {
   const middle = (cards.length - 1) / 2;
   const isAnyActive = active !== null;
+  // Per-card rotate/y so the idle deck reads as a fanned stack instead of
+  // identical overlapping rectangles merging into one flat blob.
+  const idleRotate = [-6, 2, 8];
+  const idleY = [8, -10, 4];
 
   return (
     <div className="relative flex h-[320px] w-full items-center justify-center">
@@ -113,6 +117,8 @@ function FannedStack({
         {cards.map((card, index) => {
           const offsetX = (index - middle) * cardSpacing;
           const isCurrent = active === index;
+          const rotate = idleRotate[index % idleRotate.length];
+          const restY = idleY[index % idleY.length];
 
           return (
             <motion.button
@@ -121,7 +127,8 @@ function FannedStack({
               initial={{ scale: 0 }}
               animate={{
                 x: isCurrent ? 0 : isAnyActive ? offsetX * 0.35 : offsetX,
-                y: isCurrent ? -12 : 0,
+                y: isCurrent ? -12 : isAnyActive ? 0 : restY,
+                rotate: isCurrent || isAnyActive ? 0 : rotate,
                 scale: isCurrent ? 1.1 : isAnyActive ? 0.85 : 1,
                 zIndex: isCurrent ? 50 : cards.length - Math.abs(index - middle),
               }}

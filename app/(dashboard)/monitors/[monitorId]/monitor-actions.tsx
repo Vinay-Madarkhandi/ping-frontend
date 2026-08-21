@@ -6,21 +6,31 @@ import { Pause, Play, Edit, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { Monitor, MonitorStatus, PlanContext } from "@/lib/types";
+import { AlertChannel, Monitor, MonitorStatus, PlanContext } from "@/lib/types";
 import {
   pauseMonitorAction,
   resumeMonitorAction,
   checkNowAction,
 } from "@/lib/actions/monitors";
 import { EditMonitorDialog } from "@/components/shared/edit-monitor-dialog";
+import { EditHeartbeatMonitorDialog } from "@/components/shared/edit-heartbeat-monitor-dialog";
+import { EditTcpMonitorDialog } from "@/components/shared/edit-tcp-monitor-dialog";
 
 interface MonitorActionsProps {
   monitor: Monitor;
   status?: MonitorStatus;
   planContext: PlanContext;
+  alertChannels: AlertChannel[];
+  selectedChannelIds: string[];
 }
 
-export function MonitorActions({ monitor, status, planContext }: MonitorActionsProps) {
+export function MonitorActions({
+  monitor,
+  status,
+  planContext,
+  alertChannels,
+  selectedChannelIds,
+}: MonitorActionsProps) {
   const router = useRouter();
   const [isPending, setIsPending] = useState(false);
   const [isCheckingNow, setIsCheckingNow] = useState(false);
@@ -115,15 +125,17 @@ export function MonitorActions({ monitor, status, planContext }: MonitorActionsP
           Edit
         </Button>
 
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleCheckNow}
-          disabled={isCheckingNow || isQuotaBlocked}
-        >
-          <RefreshCw className={`mr-2 h-4 w-4 ${isCheckingNow ? "animate-spin" : ""}`} />
-          {isCheckingNow ? "Checking..." : "Check Now"}
-        </Button>
+        {monitor.kind === "HEARTBEAT" ? null : (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleCheckNow}
+            disabled={isCheckingNow || isQuotaBlocked}
+          >
+            <RefreshCw className={`mr-2 h-4 w-4 ${isCheckingNow ? "animate-spin" : ""}`} />
+            {isCheckingNow ? "Checking..." : "Check Now"}
+          </Button>
+        )}
 
         <Button 
           variant="outline" 
@@ -150,13 +162,37 @@ export function MonitorActions({ monitor, status, planContext }: MonitorActionsP
         </Button>
       </div>
 
-      <EditMonitorDialog
-        monitor={monitor}
-        planContext={planContext}
-        open={editDialogOpen}
-        onOpenChange={setEditDialogOpen}
-        onSuccess={() => router.refresh()}
-      />
+      {monitor.kind === "HEARTBEAT" ? (
+        <EditHeartbeatMonitorDialog
+          monitor={monitor}
+          planContext={planContext}
+          alertChannels={alertChannels}
+          selectedChannelIds={selectedChannelIds}
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          onSuccess={() => router.refresh()}
+        />
+      ) : monitor.kind === "TCP" ? (
+        <EditTcpMonitorDialog
+          monitor={monitor}
+          planContext={planContext}
+          alertChannels={alertChannels}
+          selectedChannelIds={selectedChannelIds}
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          onSuccess={() => router.refresh()}
+        />
+      ) : (
+        <EditMonitorDialog
+          monitor={monitor}
+          planContext={planContext}
+          alertChannels={alertChannels}
+          selectedChannelIds={selectedChannelIds}
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          onSuccess={() => router.refresh()}
+        />
+      )}
     </>
   );
 }

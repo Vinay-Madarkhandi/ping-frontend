@@ -113,6 +113,76 @@ export const editMonitorSchema = z.object({
   tags: z.array(z.string().max(30, "Tags must be at most 30 characters")).max(10, "At most 10 tags").optional(),
 });
 
+// Heartbeat (cron/job) monitor schemas — no URL to probe; an external job pings Ping instead.
+export const createHeartbeatMonitorSchema = z.object({
+  name: z
+    .string()
+    .min(1, "Name is required")
+    .max(100, "Name must be at most 100 characters"),
+  intervalMilliseconds: z
+    .number()
+    .positive("Expected interval must be greater than 0")
+    .max(86400000, "Expected interval must be at most 24 hours"),
+  timeoutMilliseconds: z
+    .number()
+    .positive("Timeout must be greater than 0")
+    .max(60000, "Timeout must be at most 60 seconds"),
+  gracePeriodMilliseconds: z
+    .number()
+    .min(0, "Grace period cannot be negative")
+    .max(86400000, "Grace period must be at most 24 hours")
+    .optional(),
+  tags: z.array(z.string().max(30, "Tags must be at most 30 characters")).max(10, "At most 10 tags").optional(),
+});
+
+export const editHeartbeatMonitorSchema = createHeartbeatMonitorSchema.extend({
+  active: z.boolean().optional(),
+});
+
+// TCP (raw port reachability) monitor schemas — a bare hostname, not a full URL, plus a port.
+export const createTcpMonitorSchema = z.object({
+  name: z
+    .string()
+    .min(1, "Name is required")
+    .max(100, "Name must be at most 100 characters"),
+  url: z
+    .string()
+    .min(1, "Host is required")
+    .max(2048, "Host must be at most 2048 characters")
+    .refine((host) => !host.includes("://"), "Enter a bare hostname, not a URL (no http://)"),
+  port: z
+    .number()
+    .int("Port must be a whole number")
+    .min(1, "Port must be at least 1")
+    .max(65535, "Port must be at most 65535"),
+  intervalMilliseconds: z
+    .number()
+    .positive("Interval must be greater than 0")
+    .max(86400000, "Interval must be at most 24 hours"),
+  timeoutMilliseconds: z
+    .number()
+    .positive("Timeout must be greater than 0")
+    .max(60000, "Timeout must be at most 60 seconds"),
+  tags: z.array(z.string().max(30, "Tags must be at most 30 characters")).max(10, "At most 10 tags").optional(),
+});
+
+export const editTcpMonitorSchema = createTcpMonitorSchema.extend({
+  active: z.boolean().optional(),
+});
+
+// Maintenance window schema — start/end come from <input type="datetime-local"> fields (local time,
+// no timezone), converted to full ISO instants by the server action before hitting the backend.
+export const maintenanceWindowSchema = z
+  .object({
+    title: z.string().max(200, "Title must be at most 200 characters").optional(),
+    startsAt: z.string().min(1, "Start time is required"),
+    endsAt: z.string().min(1, "End time is required"),
+  })
+  .refine((data) => new Date(data.endsAt).getTime() > new Date(data.startsAt).getTime(), {
+    message: "End time must be after start time",
+    path: ["endsAt"],
+  });
+
 // Status page schema
 export const statusPageSchema = z.object({
   title: z
@@ -126,6 +196,39 @@ export const statusPageSchema = z.object({
     .max(64, "URL must be at most 64 characters")
     .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, "URL can only contain lowercase letters, numbers, and hyphens"),
   monitorIds: z.array(z.string()).min(1, "Select at least one monitor"),
+  logoUrl: z
+    .string()
+    .max(2048, "Logo URL must be at most 2048 characters")
+    .refine(
+      (url) => url === "" || url.startsWith("http://") || url.startsWith("https://"),
+      "Logo URL must start with http:// or https://"
+    )
+    .optional(),
+  // Left undefined to leave the current password unchanged, "" to remove protection, or set/replace it.
+  password: z.string().max(100, "Password must be at most 100 characters").optional(),
+});
+
+// Status page unlock (password gate) schema
+export const statusPageUnlockSchema = z.object({
+  password: z.string().min(1, "Password is required"),
+});
+
+// Alert channel schema
+export const alertChannelSchema = z.object({
+  type: z.enum(["WEBHOOK", "SLACK", "DISCORD"], {
+    message: "Please select a channel type",
+  }),
+  name: z
+    .string()
+    .min(1, "Name is required")
+    .max(100, "Name must be at most 100 characters"),
+  targetUrl: z
+    .string()
+    .url("Please enter a valid URL")
+    .refine(
+      (url) => url.startsWith("https://") || url.startsWith("http://"),
+      "URL must start with http:// or https://"
+    ),
 });
 
 // Type exports
@@ -136,4 +239,11 @@ export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export type CreateMonitorInput = z.infer<typeof createMonitorSchema>;
 export type EditMonitorInput = z.infer<typeof editMonitorSchema>;
+export type CreateHeartbeatMonitorInput = z.infer<typeof createHeartbeatMonitorSchema>;
+export type EditHeartbeatMonitorInput = z.infer<typeof editHeartbeatMonitorSchema>;
+export type CreateTcpMonitorInput = z.infer<typeof createTcpMonitorSchema>;
+export type EditTcpMonitorInput = z.infer<typeof editTcpMonitorSchema>;
 export type StatusPageInput = z.infer<typeof statusPageSchema>;
+export type StatusPageUnlockInput = z.infer<typeof statusPageUnlockSchema>;
+export type AlertChannelInput = z.infer<typeof alertChannelSchema>;
+export type MaintenanceWindowInput = z.infer<typeof maintenanceWindowSchema>;

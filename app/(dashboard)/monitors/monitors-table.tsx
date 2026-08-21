@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import {
   MoreHorizontal,
   ExternalLink,
+  HeartPulse,
+  Network,
   Trash2,
   Eye,
   Pause,
@@ -69,6 +71,12 @@ interface MonitorsTableProps {
   monitors: Monitor[];
 }
 
+function targetLabel(monitor: Monitor) {
+  if (monitor.kind === "HEARTBEAT") return "Waiting for pings";
+  if (monitor.kind === "TCP") return `${monitor.url}:${monitor.port}`;
+  return monitor.url ?? "";
+}
+
 const statusFilters: { value: string; label: string }[] = [
   { value: "all", label: "All statuses" },
   { value: "UP", label: "Up" },
@@ -125,7 +133,7 @@ export function MonitorsTable({ monitors }: MonitorsTableProps) {
   const filteredMonitors = useMemo(() => {
     const query = search.trim().toLowerCase();
     return monitors.filter((monitor) => {
-      if (query && !monitor.name.toLowerCase().includes(query) && !monitor.url.toLowerCase().includes(query)) {
+      if (query && !monitor.name.toLowerCase().includes(query) && !(monitor.url ?? "").toLowerCase().includes(query)) {
         return false;
       }
       if (statusFilter !== "all" && getEffectiveState(monitor) !== statusFilter) {
@@ -468,11 +476,23 @@ export function MonitorsTable({ monitors }: MonitorsTableProps) {
                           ) : null}
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline">{monitor.method || "GET"}</Badge>
+                          {monitor.kind === "HEARTBEAT" ? (
+                            <Badge variant="outline" className="gap-1">
+                              <HeartPulse className="h-3 w-3" />
+                              Heartbeat
+                            </Badge>
+                          ) : monitor.kind === "TCP" ? (
+                            <Badge variant="outline" className="gap-1">
+                              <Network className="h-3 w-3" />
+                              TCP
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline">{monitor.method || "GET"}</Badge>
+                          )}
                         </TableCell>
                         <TableCell>
                           <span className="text-muted-foreground truncate max-w-[300px] block">
-                            {monitor.url}
+                            {targetLabel(monitor)}
                           </span>
                         </TableCell>
                         <TableCell>
@@ -500,16 +520,18 @@ export function MonitorsTable({ monitors }: MonitorsTableProps) {
                                   View Details
                                 </Link>
                               </DropdownMenuItem>
-                              <DropdownMenuItem asChild>
-                                <a
-                                  href={monitor.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                >
-                                  <ExternalLink className="mr-2 h-4 w-4" />
-                                  Open URL
-                                </a>
-                              </DropdownMenuItem>
+                              {monitor.kind === "HTTP" && monitor.url ? (
+                                <DropdownMenuItem asChild>
+                                  <a
+                                    href={monitor.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    <ExternalLink className="mr-2 h-4 w-4" />
+                                    Open URL
+                                  </a>
+                                </DropdownMenuItem>
+                              ) : null}
                               <DropdownMenuSeparator />
                               <DropdownMenuItem
                                 onClick={() => handlePauseResume(monitor)}
@@ -568,7 +590,7 @@ export function MonitorsTable({ monitors }: MonitorsTableProps) {
                           {monitor.name}
                         </Link>
                         <p className="text-sm text-muted-foreground truncate mt-1">
-                          {monitor.url}
+                          {targetLabel(monitor)}
                         </p>
                         {(monitor.tags && monitor.tags.length > 0) || monitor.sslCertExpiresAt ? (
                           <div className="mt-1.5 flex flex-wrap gap-1">
@@ -595,16 +617,18 @@ export function MonitorsTable({ monitors }: MonitorsTableProps) {
                               View Details
                             </Link>
                           </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <a
-                              href={monitor.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              <ExternalLink className="mr-2 h-4 w-4" />
-                              Open URL
-                            </a>
-                          </DropdownMenuItem>
+                          {monitor.kind === "HTTP" && monitor.url ? (
+                            <DropdownMenuItem asChild>
+                              <a
+                                href={monitor.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <ExternalLink className="mr-2 h-4 w-4" />
+                                Open URL
+                              </a>
+                            </DropdownMenuItem>
+                          ) : null}
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
                             onClick={() => handlePauseResume(monitor)}
@@ -640,8 +664,20 @@ export function MonitorsTable({ monitors }: MonitorsTableProps) {
                     </div>
                     <div className="flex items-center gap-3 text-sm">
                       <MonitorStateBadge state={displayState} active={monitor.active || displayState === "PAUSED" || displayState === "QUOTA_EXCEEDED"} className="text-xs" />
-                      <Badge variant="outline" className="text-xs">
-                        {monitor.method || "GET"}
+                      <Badge variant="outline" className="gap-1 text-xs">
+                        {monitor.kind === "HEARTBEAT" ? (
+                          <>
+                            <HeartPulse className="h-3 w-3" />
+                            Heartbeat
+                          </>
+                        ) : monitor.kind === "TCP" ? (
+                          <>
+                            <Network className="h-3 w-3" />
+                            TCP
+                          </>
+                        ) : (
+                          monitor.method || "GET"
+                        )}
                       </Badge>
                       <span className={getUptimeColor(monitor.uptimePercentage)}>
                         {formatUptime(monitor.uptimePercentage)} uptime

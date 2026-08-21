@@ -59,12 +59,15 @@ export function StatusPageFormDialog({
   const isEditing = !!statusPage;
   const [isLoading, setIsLoading] = useState(false);
   const [slugTouched, setSlugTouched] = useState(isEditing);
+  const [passwordTouched, setPasswordTouched] = useState(false);
 
   const defaultValues: StatusPageInput = {
     title: statusPage?.title ?? "",
     description: statusPage?.description ?? "",
     slug: statusPage?.slug ?? "",
     monitorIds: statusPage?.monitors.map((m) => m.id) ?? [],
+    logoUrl: statusPage?.logoUrl ?? "",
+    password: undefined, // never pre-filled — leaving it blank keeps the existing password unchanged
   };
 
   const form = useForm<StatusPageInput>({
@@ -75,15 +78,22 @@ export function StatusPageFormDialog({
   useEffect(() => {
     form.reset(defaultValues);
     setSlugTouched(isEditing);
+    setPasswordTouched(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusPage, open]);
 
   async function onSubmit(data: StatusPageInput) {
     setIsLoading(true);
     try {
+      // Only send a password when the user actually touched that field — otherwise omitting it
+      // (undefined) leaves an existing password untouched instead of accidentally clearing it.
+      const payload: StatusPageInput = {
+        ...data,
+        password: passwordTouched ? data.password : undefined,
+      };
       const result = isEditing
-        ? await updateStatusPageAction(statusPage!.id, data)
-        : await createStatusPageAction(data);
+        ? await updateStatusPageAction(statusPage!.id, payload)
+        : await createStatusPageAction(payload);
 
       if (result.success) {
         toast.success(isEditing ? "Status page updated" : "Status page created", {
@@ -188,6 +198,58 @@ export function StatusPageFormDialog({
                   <FormControl>
                     <Input placeholder="Optional summary shown under the title" disabled={isLoading} {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="logoUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Logo URL</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="https://example.com/logo.png"
+                      disabled={isLoading}
+                      value={field.value ?? ""}
+                      onChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormDescription>Optional — shown in place of the Ping logo at the top of the page.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      placeholder={
+                        isEditing && statusPage?.passwordProtected
+                          ? "Leave blank to keep the current password"
+                          : "Leave blank for no password"
+                      }
+                      disabled={isLoading}
+                      value={field.value ?? ""}
+                      onChange={(e) => {
+                        setPasswordTouched(true);
+                        field.onChange(e);
+                      }}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    {isEditing && statusPage?.passwordProtected
+                      ? "This page is password protected. Enter a new password to change it, or clear it and save to remove protection."
+                      : "Optional — require visitors to enter a password before viewing this page."}
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

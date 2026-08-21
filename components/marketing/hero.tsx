@@ -19,13 +19,13 @@ export function Hero() {
             Real-time HTTP monitoring
           </div>
 
-          <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl">
+          <h1 className="text-5xl font-extrabold tracking-tight sm:text-6xl lg:text-7xl">
             Know the moment
             <br />
             something <span className="text-primary">breaks</span>.
           </h1>
 
-          <p className="mt-6 max-w-lg text-lg text-muted-foreground">
+          <p className="mt-6 max-w-lg text-lg text-muted-foreground sm:text-xl">
             Ping runs real-time HTTP checks on your servers and APIs, tracks duration-based
             uptime, and alerts you the instant something goes down — before your customers
             notice.
@@ -46,6 +46,30 @@ export function Hero() {
           <p className="mt-4 text-xs text-muted-foreground">
             No credit card required · Checks as often as every 10 seconds
           </p>
+
+          <dl className="mt-10 grid max-w-md grid-cols-3 gap-4 border-t pt-6">
+            <div>
+              <dt className="sr-only">Fastest check interval</dt>
+              <dd className="font-mono text-2xl font-bold tracking-tight" data-metric>
+                10s
+              </dd>
+              <p className="mt-0.5 text-xs text-muted-foreground">Fastest interval</p>
+            </div>
+            <div>
+              <dt className="sr-only">Probe outcomes tracked</dt>
+              <dd className="font-mono text-2xl font-bold tracking-tight" data-metric>
+                24/7
+              </dd>
+              <p className="mt-0.5 text-xs text-muted-foreground">Multi-instance scheduler</p>
+            </div>
+            <div>
+              <dt className="sr-only">Setup time</dt>
+              <dd className="font-mono text-2xl font-bold tracking-tight" data-metric>
+                &lt;1min
+              </dd>
+              <p className="mt-0.5 text-xs text-muted-foreground">To first monitor</p>
+            </div>
+          </dl>
         </div>
 
         <div className="flex justify-center lg:justify-end">

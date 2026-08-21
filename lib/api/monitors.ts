@@ -141,8 +141,10 @@ export async function resumeMonitor(monitorId: string) {
 
 /**
  * Full replacement of a monitor's configuration. Re-validates SSRF and plan limits.
+ * `kind` is immutable after creation, so it is not part of this payload — the backend infers
+ * HTTP-vs-HEARTBEAT handling from the monitor's existing kind.
  */
-export async function editMonitor(monitorId: string, data: CreateMonitorRequest) {
+export async function editMonitor(monitorId: string, data: Omit<CreateMonitorRequest, "kind">) {
   return serverFetch<Monitor>(`/api/v1/monitors/${monitorId}`, {
     method: "PUT",
     body: data,

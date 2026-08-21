@@ -87,12 +87,20 @@ export interface BillingVerifyResponse {
 }
 
 // Monitor Types
+export type MonitorKind = "HTTP" | "HEARTBEAT" | "TCP";
+
 export interface CreateMonitorRequest {
   name: string;
-  url: string;
+  /** Required for HTTP monitors; omitted for HEARTBEAT monitors (which have no URL). */
+  url?: string;
   intervalMilliseconds: number;
   timeoutMilliseconds: number;
-  monitorMethod: "GET" | "POST";
+  monitorMethod?: "GET" | "POST";
+  kind?: MonitorKind;
+  /** HEARTBEAT only: extra time past the interval before a missed ping counts as DOWN. */
+  gracePeriodMilliseconds?: number;
+  /** TCP only: the port to connect to. */
+  port?: number;
   expectedStatusCode?: number;
   keyword?: string;
   followRedirects?: boolean;
@@ -103,17 +111,21 @@ export interface CreateMonitorRequest {
 export interface CreateMonitorResponse {
   id: string;
   name: string;
-  url: string;
+  url: string | null;
   active: boolean;
   createdAt: string;
+  kind: MonitorKind;
+  /** The URL to ping. Present only for HEARTBEAT monitors. */
+  heartbeatUrl: string | null;
 }
 
 export interface Monitor {
   id: string;
   name: string;
-  url: string;
+  /** Null for HEARTBEAT monitors, which have no URL to probe. */
+  url: string | null;
   active: boolean;
-  method: "GET" | "POST";
+  method: "GET" | "POST" | null;
   nextCheckAt: string;
   uptimePercentage: number;
   createdAt: string;
@@ -126,6 +138,13 @@ export interface Monitor {
   tags: string[];
   /** Null for HTTP monitors or before the first successful TLS handshake. */
   sslCertExpiresAt: string | null;
+  kind: MonitorKind;
+  /** The URL an external job pings to report itself alive. Only present for HEARTBEAT monitors. */
+  heartbeatUrl: string | null;
+  /** HEARTBEAT only: extra time past the interval before a missed ping counts as DOWN. */
+  gracePeriodMilliseconds: number;
+  /** TCP only: the port connected to. */
+  port: number | null;
 }
 
 export type MonitorHealthState = "UNKNOWN" | "UP" | "SUSPECT" | "DOWN";
@@ -215,6 +234,8 @@ export interface StatusPage {
   title: string;
   description: string | null;
   monitors: StatusPageMonitorSummary[];
+  logoUrl: string | null;
+  passwordProtected: boolean;
 }
 
 export interface StatusPageRequest {
@@ -222,6 +243,9 @@ export interface StatusPageRequest {
   description?: string;
   slug: string;
   monitorIds: string[];
+  logoUrl?: string;
+  /** Omit to leave the password unchanged; "" removes protection; anything else sets/replaces it. */
+  password?: string;
 }
 
 export type PublicMonitorState = "UP" | "SUSPECT" | "DOWN" | "PAUSED" | "UNKNOWN";
@@ -237,9 +261,52 @@ export type OverallStatus = "OPERATIONAL" | "DEGRADED" | "PARTIAL_OUTAGE" | "MAJ
 export interface PublicStatusPage {
   title: string;
   description: string | null;
+  logoUrl: string | null;
   overallStatus: OverallStatus;
   monitors: PublicMonitorStatus[];
   updatedAt: string;
+}
+
+// Alert Channel Types
+export type AlertChannelType = "WEBHOOK" | "SLACK" | "DISCORD";
+
+export interface AlertChannel {
+  id: string;
+  type: AlertChannelType;
+  name: string;
+  targetUrl: string;
+  active: boolean;
+  createdAt: string;
+}
+
+export interface AlertChannelRequest {
+  type: AlertChannelType;
+  name: string;
+  targetUrl: string;
+}
+
+export interface AlertChannelTestResult {
+  success: boolean;
+  message: string;
+}
+
+// Maintenance Window Types
+export interface MaintenanceWindow {
+  id: string;
+  title: string | null;
+  startsAt: string;
+  endsAt: string;
+  /** True once the worker has actually paused the monitor for this window (start time reached). */
+  active: boolean;
+  /** True once the window has ended and the monitor (if paused by it) has been resumed. */
+  completed: boolean;
+  createdAt: string;
+}
+
+export interface MaintenanceWindowRequest {
+  title?: string;
+  startsAt: string;
+  endsAt: string;
 }
 
 // API Error Types

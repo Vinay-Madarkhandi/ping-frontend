@@ -6,7 +6,7 @@ const highlights = [
   {
     icon: <Tags className="size-4 text-primary" />,
     title: "Monitor tags",
-    description: "Group and filter monitors by environment or team",
+    description: "Filter monitors by team",
     date: "New",
     iconClassName: "bg-primary/15",
     titleClassName: "text-foreground",
@@ -16,7 +16,7 @@ const highlights = [
   {
     icon: <BellRing className="size-4 text-primary" />,
     title: "CSV exports",
-    description: "Download monitors, logs, and incidents in one click",
+    description: "Export logs & incidents",
     date: "New",
     iconClassName: "bg-primary/15",
     titleClassName: "text-foreground",
@@ -26,7 +26,7 @@ const highlights = [
   {
     icon: <Globe className="size-4 text-primary" />,
     title: "Public status pages",
-    description: "Share live uptime with users, no URLs exposed",
+    description: "Public uptime, no URLs",
     date: "New",
     iconClassName: "bg-primary/15",
     titleClassName: "text-foreground",

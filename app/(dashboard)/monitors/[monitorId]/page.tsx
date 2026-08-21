@@ -14,6 +14,8 @@ import {
   getMonitors,
 } from "@/lib/api/monitors";
 import { getCurrentUser } from "@/lib/api/auth";
+import { getAlertChannels, getMonitorAlertChannels } from "@/lib/api/alert-channels";
+import { getMaintenanceWindows } from "@/lib/api/maintenance-windows";
 import { createPlanContext } from "@/lib/plans";
 import { StatusCards } from "./status-cards";
 import { LogsTable } from "./logs-table";
@@ -21,6 +23,8 @@ import { DetailInsights } from "./detail-insights";
 import { MonitorActions } from "./monitor-actions";
 import { AutoRefresh } from "@/components/shared/auto-refresh";
 import { MonitorStateBadge } from "@/components/shared/monitor-state-badge";
+import { HeartbeatUrlDisplay } from "@/components/shared/heartbeat-url-display";
+import { MaintenanceWindowsCard } from "@/components/shared/maintenance-windows-card";
 
 interface MonitorDetailPageProps {
   params: Promise<{
@@ -59,13 +63,26 @@ export default async function MonitorDetailPage({
   const monitor = monitorResult.data;
 
   // Fetch detail data and plan context in parallel
-  const [statusResult, logsResult, uptimeResult, incidentsResult, userResult, monitorsResult] = await Promise.all([
+  const [
+    statusResult,
+    logsResult,
+    uptimeResult,
+    incidentsResult,
+    userResult,
+    monitorsResult,
+    alertChannelsResult,
+    monitorChannelIdsResult,
+    maintenanceWindowsResult,
+  ] = await Promise.all([
     getMonitorStatus(monitorId),
     getMonitorLogs(monitorId, currentPage, 20),
     getMonitorUptime(monitorId, selectedWindow),
     getMonitorIncidents(monitorId, 0, 10),
     getCurrentUser(),
     getMonitors(),
+    getAlertChannels(),
+    getMonitorAlertChannels(monitorId),
+    getMaintenanceWindows(monitorId),
   ]);
 
   const status = statusResult.data;
@@ -104,17 +121,27 @@ export default async function MonitorDetailPage({
                   <MonitorStateBadge state={quotaBlocked ? "QUOTA_EXCEEDED" : monitor.active ? "UNKNOWN" : "INACTIVE"} className="shrink-0" />
                 )}
               </div>
-              <div className="flex items-center gap-2 mt-1">
-                <p className="text-sm sm:text-base text-muted-foreground truncate">{monitor.url}</p>
-                <a
-                  href={monitor.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-muted-foreground hover:text-foreground shrink-0"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                </a>
-              </div>
+              {monitor.kind === "HEARTBEAT" ? (
+                <p className="text-sm sm:text-base text-muted-foreground truncate mt-1">
+                  Heartbeat monitor — waiting for the job to ping in
+                </p>
+              ) : monitor.kind === "TCP" ? (
+                <p className="text-sm sm:text-base text-muted-foreground truncate mt-1">
+                  {monitor.url}:{monitor.port}
+                </p>
+              ) : (
+                <div className="flex items-center gap-2 mt-1">
+                  <p className="text-sm sm:text-base text-muted-foreground truncate">{monitor.url}</p>
+                  <a
+                    href={monitor.url ?? undefined}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-foreground shrink-0"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                </div>
+              )}
               {monitor.tags && monitor.tags.length > 0 ? (
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {monitor.tags.map((tag) => (
@@ -125,10 +152,22 @@ export default async function MonitorDetailPage({
                 </div>
               ) : null}
             </div>
-            <MonitorActions monitor={monitor} status={status} planContext={planContext} />
+            <MonitorActions
+              monitor={monitor}
+              status={status}
+              planContext={planContext}
+              alertChannels={alertChannelsResult.data ?? []}
+              selectedChannelIds={monitorChannelIdsResult.data ?? []}
+            />
           </div>
         </div>
       </div>
+
+      {monitor.kind === "HEARTBEAT" && monitor.heartbeatUrl ? (
+        <div className="rounded-lg border p-4">
+          <HeartbeatUrlDisplay url={monitor.heartbeatUrl} />
+        </div>
+      ) : null}
 
       {quotaBlocked ? (
         <Alert className="border-destructive bg-destructive/10">
@@ -167,6 +206,8 @@ export default async function MonitorDetailPage({
         incidents={incidents}
         selectedWindow={selectedWindow}
       />
+
+      <MaintenanceWindowsCard monitorId={monitorId} windows={maintenanceWindowsResult.data ?? []} />
 
       {/* Logs Table */}
       {logs ? (

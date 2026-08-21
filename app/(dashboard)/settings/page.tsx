@@ -1,20 +1,22 @@
-import { Bell, Lock, UserRound } from "lucide-react";
+import { Lock, UserRound } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { BillingSettings } from "@/components/billing/billing-settings";
 import { PasswordSettings } from "@/components/settings/password-settings";
 import { DangerZoneSettings } from "@/components/settings/danger-zone-settings";
+import { AlertChannelsSettings } from "@/components/settings/alert-channels-settings";
 import { getCurrentUser } from "@/lib/api/auth";
 import { getPlans } from "@/lib/api/plans";
 import { getUsage } from "@/lib/api/usage";
+import { getAlertChannels } from "@/lib/api/alert-channels";
 import { createPlanContext } from "@/lib/plans";
 
 export default async function SettingsPage() {
-  const [currentUserResult, usageResult, plansResult] = await Promise.all([
+  const [currentUserResult, usageResult, plansResult, alertChannelsResult] = await Promise.all([
     getCurrentUser(),
     getUsage(),
     getPlans(),
+    getAlertChannels(),
   ]);
   const planContext = createPlanContext({
     currentUser: currentUserResult.data,
@@ -42,7 +44,9 @@ export default async function SettingsPage() {
         <DangerZoneSettings />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <AlertChannelsSettings channels={alertChannelsResult.data ?? []} />
+
+      <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-md bg-muted">
@@ -60,21 +64,6 @@ export default async function SettingsPage() {
             <p className="text-xs text-muted-foreground">
               {currentUserResult.data?.userName ?? "Connect GET /api/v1/auth/me for profile data."}
             </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-md bg-muted">
-              <Bell className="h-5 w-5" />
-            </div>
-            <CardTitle className="text-base">Notifications</CardTitle>
-            <CardDescription>
-              Alert routing and preferences will appear here when supported.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Badge variant="secondary">Not configured</Badge>
           </CardContent>
         </Card>
 
