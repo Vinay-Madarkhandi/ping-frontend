@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 
 import { LandingPage } from "@/components/marketing/landing-page";
 import { getPlans } from "@/lib/api/plans";
@@ -28,11 +28,13 @@ export default async function HomePage() {
   }
 
   const { data: plans } = await getPlans();
+  const nonce = (await headers()).get("x-nonce");
 
   return (
     <>
       <script
         type="application/ld+json"
+        nonce={nonce ?? undefined}
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <LandingPage plans={plans} />
