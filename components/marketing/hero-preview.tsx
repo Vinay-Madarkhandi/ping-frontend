@@ -1,9 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowUpRight, Lock } from "lucide-react";
+import { ArrowUpRight, Bell, Globe, Lock, Radar, Wrench } from "lucide-react";
 
 import { StatusDot } from "@/components/shared/status-dot";
+import { SonarMark } from "@/components/shared/logo";
 import { cn } from "@/lib/utils";
 
 const previewMonitors = [
@@ -24,6 +25,13 @@ const stateText: Record<string, string> = {
   SUSPECT: "text-suspect",
   DOWN: "text-down",
 };
+
+const navItems = [
+  { icon: Radar, label: "Monitoring", active: true },
+  { icon: Bell, label: "Incidents" },
+  { icon: Globe, label: "Status pages" },
+  { icon: Wrench, label: "Maintenance" },
+];
 
 /** Sparkline built from a fixed point set so the SVG path is deterministic (no hydration mismatch). */
 const sparklinePoints = [42, 38, 45, 30, 52, 48, 60, 55, 68, 62, 74, 70, 82];
@@ -64,7 +72,7 @@ export function HeroPreview() {
       initial={{ opacity: 0, y: 28 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.7, ease: "easeOut", delay: 0.15 }}
-      className="glow-primary relative w-full max-w-lg overflow-hidden rounded-2xl border bg-card/95 shadow-2xl backdrop-blur"
+      className="glow-primary relative w-full max-w-3xl overflow-hidden rounded-2xl border bg-card/95 shadow-2xl backdrop-blur"
     >
       {/* Browser chrome */}
       <div className="flex items-center gap-2 border-b bg-muted/40 px-4 py-3">
@@ -79,65 +87,91 @@ export function HeroPreview() {
         </div>
       </div>
 
-      <div className="p-4 sm:p-5">
-        <div className="mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <StatusDot state="UP" />
-            <span className="text-sm font-medium">All systems live</span>
+      <div className="flex">
+        {/* Sidebar rail — hidden on narrow screens so the panel doesn't feel cramped */}
+        <div className="hidden w-40 shrink-0 border-r bg-muted/20 p-3 sm:block">
+          <div className="mb-4 flex items-center gap-2 px-1">
+            <SonarMark className="h-5 w-5" />
+            <span className="font-display text-sm font-bold">Ping</span>
           </div>
-          <span className="font-mono text-xs text-muted-foreground" data-metric>
-            4 monitors
-          </span>
-        </div>
-
-        <div className="mb-4 grid grid-cols-3 gap-2">
-          <div className="rounded-lg border bg-background/60 px-3 py-2">
-            <p className="font-mono text-lg font-semibold text-up" data-metric>
-              99.98%
-            </p>
-            <p className="text-[10px] text-muted-foreground">30d uptime</p>
-          </div>
-          <div className="rounded-lg border bg-background/60 px-3 py-2">
-            <p className="font-mono text-lg font-semibold" data-metric>
-              89ms
-            </p>
-            <p className="text-[10px] text-muted-foreground">avg response</p>
-          </div>
-          <div className="col-span-1 rounded-lg border bg-background/60 px-3 py-2">
-            <Sparkline />
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          {previewMonitors.map((monitor, index) => (
-            <motion.div
-              key={monitor.name}
-              initial={{ opacity: 0, x: -12 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.35 + index * 0.1 }}
-              className="flex items-center justify-between rounded-lg border bg-background/60 px-3 py-2.5"
-            >
-              <div className="flex min-w-0 items-center gap-2.5">
-                <StatusDot state={monitor.state} />
-                <span className="truncate font-mono text-xs text-foreground sm:text-sm" data-metric>
-                  {monitor.name}
-                </span>
+          <nav className="space-y-1">
+            {navItems.map((item) => (
+              <div
+                key={item.label}
+                className={cn(
+                  "flex items-center gap-2 rounded-md px-2 py-1.5 text-xs font-medium",
+                  item.active
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground"
+                )}
+              >
+                <item.icon className="h-3.5 w-3.5" />
+                {item.label}
               </div>
-              <div className="flex shrink-0 items-center gap-3 text-xs">
-                <span className={cn("font-medium", stateText[monitor.state])}>
-                  {stateLabel[monitor.state]}
-                </span>
-                <span className="hidden font-mono text-muted-foreground sm:inline" data-metric>
-                  {monitor.latency}
-                </span>
-              </div>
-            </motion.div>
-          ))}
+            ))}
+          </nav>
         </div>
 
-        <div className="mt-4 flex items-center justify-between rounded-lg bg-primary/10 px-3 py-2.5">
-          <span className="text-xs font-medium text-primary">Alert sent to on-call in 4.2s</span>
-          <ArrowUpRight className="h-3.5 w-3.5 text-primary" />
+        <div className="flex-1 p-4 sm:p-5">
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <StatusDot state="UP" />
+              <span className="text-sm font-medium">All systems live</span>
+            </div>
+            <span className="font-mono text-xs text-muted-foreground" data-metric>
+              4 monitors
+            </span>
+          </div>
+
+          <div className="mb-4 grid grid-cols-3 gap-2">
+            <div className="rounded-lg border bg-background/60 px-3 py-2">
+              <p className="font-mono text-lg font-semibold text-up" data-metric>
+                99.98%
+              </p>
+              <p className="text-[10px] text-muted-foreground">30d uptime</p>
+            </div>
+            <div className="rounded-lg border bg-background/60 px-3 py-2">
+              <p className="font-mono text-lg font-semibold" data-metric>
+                89ms
+              </p>
+              <p className="text-[10px] text-muted-foreground">avg response</p>
+            </div>
+            <div className="col-span-1 rounded-lg border bg-background/60 px-3 py-2">
+              <Sparkline />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            {previewMonitors.map((monitor, index) => (
+              <motion.div
+                key={monitor.name}
+                initial={{ opacity: 0, x: -12 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.35 + index * 0.1 }}
+                className="flex items-center justify-between rounded-lg border bg-background/60 px-3 py-2.5"
+              >
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <StatusDot state={monitor.state} />
+                  <span className="truncate font-mono text-xs text-foreground sm:text-sm" data-metric>
+                    {monitor.name}
+                  </span>
+                </div>
+                <div className="flex shrink-0 items-center gap-3 text-xs">
+                  <span className={cn("font-medium", stateText[monitor.state])}>
+                    {stateLabel[monitor.state]}
+                  </span>
+                  <span className="hidden font-mono text-muted-foreground sm:inline" data-metric>
+                    {monitor.latency}
+                  </span>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="mt-4 flex items-center justify-between rounded-lg bg-primary/10 px-3 py-2.5">
+            <span className="text-xs font-medium text-primary">Alert sent to on-call in 4.2s</span>
+            <ArrowUpRight className="h-3.5 w-3.5 text-primary" />
+          </div>
         </div>
       </div>
     </motion.div>
