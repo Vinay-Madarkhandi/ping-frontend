@@ -37,31 +37,6 @@ export function Reliability() {
           ))}
         </Marquee>
       </div>
-
-      <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-xl border bg-card p-5">
-          <p className="font-mono text-2xl font-semibold text-primary" data-metric>
-            10s
-          </p>
-          <p className="mt-1 text-sm text-muted-foreground">Fastest check interval</p>
-        </div>
-        <div className="rounded-xl border bg-card p-5">
-          <p className="font-mono text-2xl font-semibold text-primary" data-metric>
-            3
-          </p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Probe outcomes tracked: up, down, inconclusive
-          </p>
-        </div>
-        <div className="rounded-xl border bg-card p-5">
-          <p className="font-mono text-2xl font-semibold text-primary" data-metric>
-            24/7
-          </p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Multi-instance scheduler with row-level locking
-          </p>
-        </div>
-      </div>
     </section>
   );
 }

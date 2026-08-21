@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/marketing/navbar";
 import { Hero } from "@/components/marketing/hero";
+import { TrustBand } from "@/components/marketing/trust-band";
 import { HighlightCards } from "@/components/marketing/highlight-cards";
 import { Features } from "@/components/marketing/features";
 import { UseCases } from "@/components/marketing/use-cases";
@@ -17,6 +18,7 @@ export function LandingPage({ plans }: { plans?: PlanLimits[] }) {
       <Navbar />
       <main>
         <Hero />
+        <TrustBand />
         <HighlightCards />
         <Features />
         <UseCases />

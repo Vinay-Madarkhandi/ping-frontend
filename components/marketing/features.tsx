@@ -1,100 +1,76 @@
 import {
-  Zap,
-  BellRing,
-  TrendingUp,
+  Globe,
+  KeyRound,
+  Network,
   ShieldCheck,
-  Activity,
-  Server,
+  HeartPulse,
+  Radio,
 } from "lucide-react";
 
-import { BentoGrid, BentoCard } from "@/components/marketing/bento-grid";
-import { SonarPulse } from "@/components/shared/logo";
+import { RadarIcon } from "@/components/marketing/radar-icon";
+
+const monitorTypes = [
+  {
+    icon: Globe,
+    title: "Website monitoring",
+    description: "GET or POST checks on any HTTP(S) endpoint, as often as every 10 seconds.",
+  },
+  {
+    icon: KeyRound,
+    title: "Keyword monitoring",
+    description: "Get alerted the moment expected text disappears from a response body.",
+  },
+  {
+    icon: Network,
+    title: "TCP port monitoring",
+    description: "Raw socket checks for databases, SSH, message queues, and other non-HTTP services.",
+  },
+  {
+    icon: HeartPulse,
+    title: "Heartbeat monitoring",
+    description: "Cron jobs and background workers ping Ping — silence itself is the alert.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "SSL certificate monitoring",
+    description: "Know a certificate is about to expire before your users see a browser warning.",
+  },
+  {
+    icon: Radio,
+    title: "Public status pages",
+    description: "Share live uptime with your users — never the URLs or configuration behind it.",
+  },
+];
 
 export function Features() {
   return (
     <section id="features" className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
-      <div className="mx-auto max-w-2xl text-center">
-        <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
-          Everything you need to trust your uptime
-        </h2>
-        <p className="mt-4 text-muted-foreground">
-          Built on a scheduler that survives restarts, deploys, and multiple instances —
-          not a cron job that quietly stops working.
-        </p>
-      </div>
+      <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] lg:items-start">
+        <div>
+          <h2 className="text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl">
+            Catch downtime
+            <br />
+            before your users do.
+          </h2>
+          <p className="mt-4 max-w-md text-muted-foreground">
+            Set up a monitor in minutes, get an instant alert when something breaks, and see
+            exactly what happened — from the first failed check to recovery.
+          </p>
+        </div>
 
-      <BentoGrid className="mt-12">
-        <BentoCard colSpan={4} className="flex flex-col justify-between">
-          <div>
-            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-              <Zap className="h-5 w-5 text-primary" />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {monitorTypes.map((type) => (
+            <div
+              key={type.title}
+              className="group rounded-2xl border bg-card p-5 transition-colors hover:border-primary/40"
+            >
+              <RadarIcon icon={<type.icon className="h-4 w-4" />} />
+              <h3 className="mt-4 text-sm font-semibold">{type.title}</h3>
+              <p className="mt-1.5 text-sm text-muted-foreground">{type.description}</p>
             </div>
-            <h3 className="text-lg font-semibold">Real-time HTTP checks</h3>
-            <p className="mt-2 max-w-md text-sm text-muted-foreground">
-              GET or POST checks with custom headers, expected status codes, keyword
-              matching, and redirect handling — on a schedule as tight as 10 seconds.
-            </p>
-          </div>
-          <div className="mt-6 flex items-center justify-end">
-            <SonarPulse className="h-24 w-24 opacity-80 sm:h-28 sm:w-28" />
-          </div>
-        </BentoCard>
-
-        <BentoCard colSpan={2}>
-          <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-            <BellRing className="h-5 w-5 text-primary" />
-          </div>
-          <h3 className="text-lg font-semibold">Alerts that don&apos;t cry wolf</h3>
-          <p className="mt-2 text-sm text-muted-foreground">
-            A debounced UP / SUSPECT / DOWN state machine filters out single blips before
-            emailing your team — with durable retries on the outbox.
-          </p>
-        </BentoCard>
-
-        <BentoCard colSpan={2}>
-          <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-            <TrendingUp className="h-5 w-5 text-primary" />
-          </div>
-          <h3 className="text-lg font-semibold">Duration-based uptime</h3>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Uptime percentages exclude paused time and data gaps, so the number you report
-            to stakeholders actually means something.
-          </p>
-        </BentoCard>
-
-        <BentoCard colSpan={2}>
-          <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-            <Activity className="h-5 w-5 text-primary" />
-          </div>
-          <h3 className="text-lg font-semibold">Incident tracking</h3>
-          <p className="mt-2 text-sm text-muted-foreground">
-            One open incident per monitor, from first failure to recovery, with full check
-            logs alongside it.
-          </p>
-        </BentoCard>
-
-        <BentoCard colSpan={3}>
-          <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-            <ShieldCheck className="h-5 w-5 text-primary" />
-          </div>
-          <h3 className="text-lg font-semibold">SSRF-protected by default</h3>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Every monitor URL is validated at creation and again at DNS resolution/connect
-            time, so internal infrastructure stays off-limits.
-          </p>
-        </BentoCard>
-
-        <BentoCard colSpan={3}>
-          <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-            <Server className="h-5 w-5 text-primary" />
-          </div>
-          <h3 className="text-lg font-semibold">Built to scale horizontally</h3>
-          <p className="mt-2 text-sm text-muted-foreground">
-            A PostgreSQL row-locked scheduler lets multiple app instances claim disjoint
-            work without stepping on each other.
-          </p>
-        </BentoCard>
-      </BentoGrid>
+          ))}
+        </div>
+      </div>
     </section>
   );
 }
