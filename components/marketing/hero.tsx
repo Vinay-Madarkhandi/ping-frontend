@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowRight, Check } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { AuroraBackground } from "@/components/marketing/aurora-background";
+import { BackgroundBeams } from "@/components/ui/background-beams";
 import { HeroPreview } from "@/components/marketing/hero-preview";
 
 const checks = [
@@ -14,9 +14,18 @@ const checks = [
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden">
-      <AuroraBackground />
-      <div className="mx-auto max-w-4xl px-4 pt-20 pb-4 text-center sm:px-6 sm:pt-28">
+    <section className="relative overflow-hidden bg-background">
+      {/*
+        BackgroundBeams is unpositioned-z (no z-index) on purpose: giving it a negative one here
+        would escape this section's stacking context (`position: relative` alone doesn't create
+        one) and get hoisted to a much higher ancestor, rendering behind most of the page instead
+        of just behind the two content divs below. Correspondingly, those two divs are `relative`
+        (position, no z-index) rather than plain static — an *unpositioned* sibling actually
+        paints *before* a positioned one regardless of DOM order, which would otherwise put the
+        beams visually on top of the text instead of behind it.
+      */}
+      <BackgroundBeams />
+      <div className="relative mx-auto max-w-4xl px-4 pt-20 pb-4 text-center sm:px-6 sm:pt-28">
         <div className="mb-6 inline-flex items-center gap-2 rounded-full border bg-card/60 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur">
           <span className="relative flex h-1.5 w-1.5">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-up opacity-75" />
@@ -62,7 +71,7 @@ export function Hero() {
         </p>
       </div>
 
-      <div className="mx-auto max-w-5xl px-4 pb-20 pt-14 sm:px-6 sm:pb-28">
+      <div className="relative mx-auto max-w-5xl px-4 pb-20 pt-14 sm:px-6 sm:pb-28">
         <div className="flex justify-center">
           <HeroPreview />
         </div>
